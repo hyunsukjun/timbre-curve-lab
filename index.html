@@ -1,0 +1,96 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Timbre Curve Lab</title>
+    <link rel="stylesheet" href="src/styles.css?v=20260824-25">
+  </head>
+  <body>
+    <main class="app">
+      <header class="topbar">
+        <div class="brand">
+          <h1>Timbre Curve Lab</h1>
+          <p class="tagline">Draw filter color onto sound.</p>
+          <p class="statusLine"><span id="fileStatus">No audio loaded</span><span class="privacyNote">Local browser processing. No upload.</span></p>
+        </div>
+        <div id="timeStatus">00:00.00 / 00:00.00</div>
+        <div class="transport">
+          <label class="fileButton">
+            Open Audio
+            <input id="fileInput" type="file" accept="audio/*">
+          </label>
+          <button id="playButton" type="button" disabled>Play</button>
+          <button id="stopButton" type="button" disabled>Stop</button>
+          <button id="downloadButton" type="button" disabled>Download WAV</button>
+        </div>
+      </header>
+
+      <section class="editor">
+        <div class="effectBar">
+          <div class="effectChain" aria-label="Effect chain">
+            <button id="lowpassMode" class="effectModule lowpassModule" type="button">Low Pass</button>
+            <button id="highpassMode" class="effectModule highpassModule" type="button">High Pass</button>
+            <button id="bandpassMode" class="effectModule bandpassModule" type="button">Band Pass</button>
+            <button id="combMode" class="effectModule combModule" type="button">Comb</button>
+            <button id="flangerMode" class="effectModule flangerModule" type="button">Flanger</button>
+            <button id="chorusMode" class="effectModule chorusModule" type="button">Chorus</button>
+            <button id="delayMode" class="effectModule delayModule" type="button">Delay</button>
+          </div>
+          <div class="curveActions">
+            <button id="clearCurveButton" type="button">Clear Current</button>
+            <button id="resetButton" type="button">Reset All</button>
+          </div>
+        </div>
+        <div id="parameterBar" class="parameterBar" aria-label="Effect parameters" hidden>
+          <button id="bandpassCenterParam" class="parameterButton wideParameter" type="button">Center Frequency</button>
+          <button id="bandpassWidthParam" class="parameterButton" type="button">Width</button>
+          <button id="combDelayParam" class="parameterButton wideParameter" type="button">Delay Time</button>
+          <button id="combFeedbackParam" class="parameterButton" type="button">Feedback</button>
+          <button id="combMixParam" class="parameterButton" type="button">Mix</button>
+          <button id="flangerDelayParam" class="parameterButton wideParameter" type="button">Delay Time</button>
+          <button id="flangerDepthParam" class="parameterButton" type="button">Depth</button>
+          <button id="flangerRateParam" class="parameterButton" type="button">Rate</button>
+          <button id="flangerFeedbackParam" class="parameterButton" type="button">Feedback</button>
+          <button id="chorusDelayParam" class="parameterButton wideParameter" type="button">Delay Time</button>
+          <button id="chorusDepthParam" class="parameterButton" type="button">Depth</button>
+          <button id="chorusRateParam" class="parameterButton" type="button">Rate</button>
+          <button id="chorusMixParam" class="parameterButton" type="button">Mix</button>
+          <button id="delayTimeParam" class="parameterButton wideParameter" type="button">Delay Time</button>
+          <button id="delayFeedbackParam" class="parameterButton" type="button">Feedback</button>
+          <button id="delayMixParam" class="parameterButton" type="button">Mix</button>
+        </div>
+        <div id="parameterLegend" class="parameterLegend" aria-label="Current parameter ranges"></div>
+        <div class="panel">
+          <div class="readout">
+            <span>Curve</span>
+            <strong id="modeReadout">Low Pass</strong>
+          </div>
+          <div class="readout">
+            <span>Points</span>
+            <strong id="pointsReadout">2</strong>
+          </div>
+          <div class="readout">
+            <span>Engine</span>
+            <strong>Timbre Filter</strong>
+          </div>
+          <div class="readout">
+            <span>Value</span>
+            <strong id="cutoffReadout">1.0 kHz</strong>
+          </div>
+          <div class="readout">
+            <span>WAV</span>
+            <strong id="downloadReadout">not ready</strong>
+          </div>
+        </div>
+        <div class="canvasFrame">
+          <canvas id="waveCanvas" width="1400" height="620"></canvas>
+        </div>
+        <div class="chainLabel">Signal Chain</div>
+        <div id="chainDiagram" class="chainDiagram" aria-label="Current effect order"></div>
+      </section>
+    </main>
+
+    <script src="src/app.js?v=20260824-37" type="module"></script>
+  </body>
+</html>
