@@ -50,18 +50,18 @@ const curveColors = {
   highpass: "#eb6f75",
   bandpassCenter: "#8fcf7a",
   bandpassWidth: "#6fa8dc",
-  combDelay: "#d4bd72",
+  combDelay: "#f2b705",
   combFeedback: "#8fcf7a",
   combMix: "#6fa8dc",
-  flangerDelay: "#d4bd72",
+  flangerDelay: "#f2b705",
   flangerDepth: "#b887f4",
   flangerRate: "#eb6f75",
   flangerFeedback: "#8fcf7a",
-  chorusDelay: "#d4bd72",
+  chorusDelay: "#f2b705",
   chorusDepth: "#b887f4",
   chorusRate: "#8fcf7a",
   chorusMix: "#6fa8dc",
-  delayTime: "#d4bd72",
+  delayTime: "#f2b705",
   delayFeedback: "#8fcf7a",
   delayMix: "#6fa8dc"
 };
@@ -772,7 +772,7 @@ function getSettings() {
 
 async function getOfflineRenderer() {
   if (!renderOffline) {
-    const module = await import("./offline-render.js?v=20260824-36");
+    const module = await import("./offline-render.js?v=20260901-18");
     renderOffline = module.renderOffline;
   }
   return renderOffline;
@@ -914,9 +914,12 @@ function drawCurve(name, curve, color, width, fillPoints) {
   const plotW = Math.max(1, w - axisWidth);
   ctx.save();
   const effectName = effectForCurve(name);
-  ctx.globalAlpha = effects[effectName].enabled ? 1 : 0.38;
+  const isSelectedCurve = fillPoints;
+  ctx.globalAlpha = effects[effectName].enabled ? 1 : 0.32;
   ctx.strokeStyle = color;
-  ctx.lineWidth = width;
+  ctx.lineWidth = isSelectedCurve ? 4.8 : 2.1;
+  ctx.lineCap = "round";
+  ctx.lineJoin = "round";
   ctx.beginPath();
   for (let i = 0; i <= plotW; i += 3) {
     const x = i / plotW;
@@ -1120,30 +1123,30 @@ function drawCurves() {
   if (!effects[effectForCurve(activeCurve)].enabled) return;
   if (effectForCurve(activeCurve) === "bandpass") {
     if (activeCurve === "bandpassWidth") {
-      drawCurve("bandpassCenter", curves.bandpassCenter, curveColors.bandpassCenter, 2, false);
-      drawCurve("bandpassWidth", curves.bandpassWidth, curveColors.bandpassWidth, 3, true);
+      drawCurve("bandpassCenter", curves.bandpassCenter, curveColors.bandpassCenter, 2.1, false);
+      drawCurve("bandpassWidth", curves.bandpassWidth, curveColors.bandpassWidth, 4.8, true);
     } else {
-      drawCurve("bandpassWidth", curves.bandpassWidth, curveColors.bandpassWidth, 2, false);
-      drawCurve("bandpassCenter", curves.bandpassCenter, curveColors.bandpassCenter, 3, true);
+      drawCurve("bandpassWidth", curves.bandpassWidth, curveColors.bandpassWidth, 2.1, false);
+      drawCurve("bandpassCenter", curves.bandpassCenter, curveColors.bandpassCenter, 4.8, true);
     }
     return;
   }
   if (effectForCurve(activeCurve) === "comb") {
     for (const name of curveNamesForEffect("comb")) {
-      if (name !== activeCurve) drawCurve(name, curves[name], curveColors[name], 2, false);
+      if (name !== activeCurve) drawCurve(name, curves[name], curveColors[name], 2.1, false);
     }
-    drawCurve(activeCurve, curves[activeCurve], curveColors[activeCurve], 3, true);
+    drawCurve(activeCurve, curves[activeCurve], curveColors[activeCurve], 4.8, true);
     return;
   }
   if (["flanger", "chorus", "delay"].includes(effectForCurve(activeCurve))) {
     const activeEffect = effectForCurve(activeCurve);
     for (const name of curveNamesForEffect(activeEffect)) {
-      if (name !== activeCurve) drawCurve(name, curves[name], curveColors[name], 2, false);
+      if (name !== activeCurve) drawCurve(name, curves[name], curveColors[name], 2.1, false);
     }
-    drawCurve(activeCurve, curves[activeCurve], curveColors[activeCurve], 3, true);
+    drawCurve(activeCurve, curves[activeCurve], curveColors[activeCurve], 4.8, true);
     return;
   }
-  drawCurve(activeCurve, curves[activeCurve], curveColors[activeCurve], 3, true);
+  drawCurve(activeCurve, curves[activeCurve], curveColors[activeCurve], 4.8, true);
 }
 
 function draw() {
@@ -1278,7 +1281,7 @@ async function setupAudio() {
     throw new Error("AudioWorklet is not available. Use a current Chrome, Edge, or Safari version over HTTPS.");
   }
 
-    await audioContext.audioWorklet.addModule("src/timbre-worklet.js?v=20260824-37");
+    await audioContext.audioWorklet.addModule("src/timbre-worklet.js?v=20260901-18");
     node = new AudioWorkletNode(audioContext, "timbre-filter-processor", {
       numberOfInputs: 0,
       numberOfOutputs: 1,
