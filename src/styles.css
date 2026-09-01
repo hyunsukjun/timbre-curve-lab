@@ -11,7 +11,7 @@
   --top-accent-soft: #8bbce6;
   --red: #eb6f75;
   --purple: #b887f4;
-  --gold: #d4bd72;
+  --gold: #f2b705;
   --danger: #d7827e;
   font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
   background: var(--bg);
@@ -274,7 +274,7 @@ button:disabled {
 .delayModule.enabled,
 .delayModule.active {
   border-color: var(--gold);
-  background: #35301f;
+  background: #302704;
 }
 
 .effectBar {
@@ -360,19 +360,31 @@ button:disabled {
 }
 
 #lowpassMode.active {
-  box-shadow: inset 0 -2px 0 #cfe8ff;
+  border-color: #6fa8dc;
+  background: #1d2c3a;
+  color: #edf7ff;
+  box-shadow: inset 0 -2px 0 #6fa8dc;
 }
 
 #highpassMode.active {
-  box-shadow: inset 0 -2px 0 #ffd0d1;
+  border-color: #eb6f75;
+  background: #3a2024;
+  color: #ffd0d1;
+  box-shadow: inset 0 -2px 0 #eb6f75;
 }
 
 #bandpassMode.active {
-  box-shadow: inset 0 -2px 0 #d7f6cf;
+  border-color: #8fcf7a;
+  background: #203323;
+  color: #f1ffe8;
+  box-shadow: inset 0 -2px 0 #8fcf7a;
 }
 
 #combMode.active {
-  box-shadow: inset 0 -2px 0 #fff0bc;
+  border-color: #f2b705;
+  background: #302704;
+  color: #fff3be;
+  box-shadow: inset 0 -2px 0 #f2b705;
 }
 
 #lowpassMode.bypassed,
@@ -422,9 +434,9 @@ button:disabled {
 }
 
 #combDelayParam.active {
-  border-color: #d4bd72;
-  background: #302d1f;
-  color: #fff5cf;
+  border-color: #f2b705;
+  background: #302704;
+  color: #fff3be;
 }
 
 #combFeedbackParam.active {
@@ -442,9 +454,9 @@ button:disabled {
 #flangerDelayParam.active,
 #chorusDelayParam.active,
 #delayTimeParam.active {
-  border-color: #d4bd72;
-  background: #302d1f;
-  color: #fff5cf;
+  border-color: #f2b705;
+  background: #302704;
+  color: #fff3be;
 }
 
 #flangerDepthParam.active,
