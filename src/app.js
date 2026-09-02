@@ -44,6 +44,14 @@ const transformSettings = {
 };
 
 const largeFileSeconds = 180;
+const sampleNoiseDuration = 8;
+const sampleNoiseBurstSeconds = 0.045833;
+const sampleNoiseGapSeconds = 0.020833;
+const sampleNoiseAttackSeconds = 0.003;
+const sampleNoiseDecaySeconds = 0.014;
+const sampleNoiseSustainLevel = 0.22;
+const sampleNoiseReleaseSeconds = 0.018;
+const sampleNoiseGain = 0.32;
 
 const curveColors = {
   lowpass: "#6fa8dc",
@@ -1248,6 +1256,77 @@ function buildWaveform(audioBuffer) {
   }
 }
 
+function createWhiteNoiseIntervalBuffer(sampleRate) {
+  const frameCount = Math.max(1, Math.floor(sampleNoiseDuration * sampleRate));
+  const noiseFrames = Math.floor(sampleNoiseBurstSeconds * sampleRate);
+  const gapFrames = Math.floor(sampleNoiseGapSeconds * sampleRate);
+  const cycleFrames = Math.max(1, noiseFrames + gapFrames);
+  const attackFrames = Math.max(1, Math.floor(sampleNoiseAttackSeconds * sampleRate));
+  const decayFrames = Math.max(1, Math.floor(sampleNoiseDecaySeconds * sampleRate));
+  const releaseFrames = Math.max(1, Math.floor(sampleNoiseReleaseSeconds * sampleRate));
+  const audioBuffer = audioContext.createBuffer(2, frameCount, sampleRate);
+  const left = audioBuffer.getChannelData(0);
+  const right = audioBuffer.getChannelData(1);
+
+  for (let i = 0; i < frameCount; i += 1) {
+    const cyclePosition = i % cycleFrames;
+    if (cyclePosition >= noiseFrames) continue;
+
+    let envelope = sampleNoiseSustainLevel;
+    if (cyclePosition < attackFrames) {
+      envelope = cyclePosition / attackFrames;
+    } else if (cyclePosition < attackFrames + decayFrames) {
+      const decayPosition = (cyclePosition - attackFrames) / decayFrames;
+      envelope = 1 - ((1 - sampleNoiseSustainLevel) * decayPosition);
+    }
+
+    const releasePosition = (noiseFrames - cyclePosition) / releaseFrames;
+    envelope *= Math.max(0, Math.min(1, releasePosition));
+    const sample = ((Math.random() * 2) - 1) * sampleNoiseGain * envelope;
+    left[i] = sample;
+    right[i] = sample;
+  }
+
+  return audioBuffer;
+}
+
+function useAudioBuffer(nextBuffer, label) {
+  if (renderAbortController) {
+    renderAbortController.abort();
+    renderAbortController = null;
+  }
+  forceStopAudio();
+  buffer = nextBuffer;
+  buildWaveform(buffer);
+  workletBufferLoaded = false;
+  sendBufferToWorklet();
+  fileStatus.textContent = `${label} - ${buffer.duration.toFixed(2)} s`;
+  clearDownload();
+  downloadReadout.textContent = "ready";
+  playheadSeconds = 0;
+  draw();
+}
+
+async function loadDefaultWhiteNoise() {
+  try {
+    if (!audioContext) {
+      const AudioContextClass = window.AudioContext || window.webkitAudioContext;
+      if (!AudioContextClass) {
+        throw new Error("Web Audio is not available in this browser.");
+      }
+      audioContext = new AudioContextClass();
+    }
+    const noiseBuffer = createWhiteNoiseIntervalBuffer(audioContext.sampleRate);
+    useAudioBuffer(noiseBuffer, "White noise intervals");
+  } catch (error) {
+    console.error(error);
+    fileStatus.textContent = "Open an audio file to begin.";
+    downloadReadout.textContent = "not ready";
+    buffer = null;
+    draw();
+  }
+}
+
 function decodeAudioFile(arrayBuffer) {
   const data = arrayBuffer.slice(0);
   return new Promise((resolve, reject) => {
@@ -1816,3 +1895,4 @@ window.addEventListener("keyup", (event) => {
 });
 
 resizeCanvas();
+loadDefaultWhiteNoise();
