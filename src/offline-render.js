@@ -81,6 +81,24 @@ function delayTimeMsFromNorm(y) {
   return 100 + (Math.max(0, Math.min(1, y)) * 1400);
 }
 
+function maxCurveValue(curve) {
+  if (!Array.isArray(curve) || curve.length === 0) return 0;
+  return curve.reduce((maximum, point) => Math.max(maximum, point.y || 0), 0);
+}
+
+function delayTailSeconds(curves, settings) {
+  const delayIsActive = settings.delayEnabled && settings.chainOrder?.includes("delay");
+  if (!delayIsActive) return 0;
+  const mix = combMixFromNorm(maxCurveValue(curves.delayMix));
+  if (mix <= 0.001) return 0;
+  const delaySeconds = delayTimeMsFromNorm(maxCurveValue(curves.delayTime)) / 1000;
+  const feedback = modulationFeedbackFromNorm(maxCurveValue(curves.delayFeedback));
+  const repeats = feedback > 0.001
+    ? Math.max(1, Math.ceil(Math.log(0.001) / Math.log(feedback)))
+    : 1;
+  return Math.min(10, delaySeconds * repeats);
+}
+
 function processLowPass(input, state, cutoff, sampleRate) {
   const safeCutoff = Math.max(10, Math.min(sampleRate * 0.45, cutoff));
   const q = 0.71;
@@ -266,7 +284,9 @@ export async function renderOffline({ audioBuffer, curves, settings, signal, onP
   const right = audioBuffer.numberOfChannels > 1 ? audioBuffer.getChannelData(1) : left;
   const maxDuration = 180;
   const outputDuration = Math.min(audioBuffer.duration, maxDuration);
-  const outLength = Math.max(1, Math.ceil(outputDuration * sampleRate));
+  const sourceLength = Math.max(1, Math.ceil(outputDuration * sampleRate));
+  const tailDuration = delayTailSeconds(curves, settings);
+  const outLength = sourceLength + Math.round(tailDuration * sampleRate);
   const outL = new Float32Array(outLength);
   const outR = new Float32Array(outLength);
   const lowPassLeftState = { ic1: 0, ic2: 0 };
@@ -313,7 +333,7 @@ export async function renderOffline({ audioBuffer, curves, settings, signal, onP
       throw new DOMException("Render cancelled", "AbortError");
     }
 
-    const norm = outLength > 1 ? i / (outLength - 1) : 0;
+    const norm = sourceLength > 1 ? Math.min(1, i / (sourceLength - 1)) : 1;
     const lowPassCutoff = cutoffFromNorm(valueAt(curves.lowpass, norm), sampleRate);
     const highPassCutoff = cutoffFromNorm(valueAt(curves.highpass, norm), sampleRate);
     const bandPassCenter = cutoffFromNorm(valueAt(curves.bandpassCenter, norm), sampleRate);
@@ -333,8 +353,8 @@ export async function renderOffline({ audioBuffer, curves, settings, signal, onP
     const delayTimeMs = delayTimeMsFromNorm(valueAt(curves.delayTime, norm));
     const delayFeedback = modulationFeedbackFromNorm(valueAt(curves.delayFeedback, norm));
     const delayMix = combMixFromNorm(valueAt(curves.delayMix, norm));
-    let renderedL = left[i] || 0;
-    let renderedR = right[i] || 0;
+    let renderedL = i < sourceLength ? (left[i] || 0) : 0;
+    let renderedR = i < sourceLength ? (right[i] || 0) : 0;
     for (const effectName of effectOrder) {
       if (effectName === "lowpass") {
         renderedL = processLowPass(renderedL, lowPassLeftState, lowPassCutoff, sampleRate);

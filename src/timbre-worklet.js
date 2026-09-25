@@ -6,6 +6,7 @@ class TimbreFilterProcessor extends AudioWorkletProcessor {
     this.sampleRateSource = sampleRate;
     this.sourceFrame = 0;
     this.token = 0;
+    this.tailFramesRemaining = 0;
     this.positionFramesUntilUpdate = 0;
     this.positionUpdateInterval = Math.max(1, Math.round(sampleRate / 30));
     this.lowPassCurve = [{ x: 0, y: 0.53 }, { x: 1, y: 0.53 }];
@@ -63,6 +64,7 @@ class TimbreFilterProcessor extends AudioWorkletProcessor {
         this.right = data.right || data.left;
         this.sampleRateSource = data.sampleRate;
         this.sourceFrame = 0;
+        this.tailFramesRemaining = 0;
         this.resetFilter();
         this.positionFramesUntilUpdate = 0;
       } else if (data.type === "curves") {
@@ -104,10 +106,12 @@ class TimbreFilterProcessor extends AudioWorkletProcessor {
           this.resetFilter();
         }
         this.settings.playing = true;
+        this.tailFramesRemaining = 0;
         this.positionFramesUntilUpdate = 0;
       } else if (data.type === "stop") {
         this.token = data.token ?? this.token;
         this.settings.playing = false;
+        this.tailFramesRemaining = 0;
         if (data.reset) {
           this.sourceFrame = 0;
           this.resetFilter();
@@ -119,6 +123,7 @@ class TimbreFilterProcessor extends AudioWorkletProcessor {
         if (this.left) {
           this.sourceFrame = Math.max(0, Math.min(this.left.length - 3, (data.seconds || 0) * this.sampleRateSource));
         }
+        this.tailFramesRemaining = 0;
         this.resetFilter();
         this.positionFramesUntilUpdate = 0;
       }
@@ -255,6 +260,23 @@ class TimbreFilterProcessor extends AudioWorkletProcessor {
 
   delayTimeMsFromNorm(y) {
     return 100 + (Math.max(0, Math.min(1, y)) * 1400);
+  }
+
+  maxCurveValue(curve) {
+    if (!Array.isArray(curve) || curve.length === 0) return 0;
+    return curve.reduce((maximum, point) => Math.max(maximum, point.y || 0), 0);
+  }
+
+  delayTailSeconds() {
+    if (!this.orderedEffects().includes("delay")) return 0;
+    const mix = this.combMixFromNorm(this.maxCurveValue(this.delayMixCurve));
+    if (mix <= 0.001) return 0;
+    const delaySeconds = this.delayTimeMsFromNorm(this.maxCurveValue(this.delayTimeCurve)) / 1000;
+    const feedback = this.modulationFeedbackFromNorm(this.maxCurveValue(this.delayFeedbackCurve));
+    const repeats = feedback > 0.001
+      ? Math.max(1, Math.ceil(Math.log(0.001) / Math.log(feedback)))
+      : 1;
+    return Math.min(10, delaySeconds * repeats);
   }
 
   processLowPass(input, state, cutoff) {
@@ -448,7 +470,11 @@ class TimbreFilterProcessor extends AudioWorkletProcessor {
       let r = 0;
 
       if (this.left && this.settings.playing) {
-        const norm = this.left.length > 1 ? Math.min(1, this.sourceFrame / (this.left.length - 1)) : 0;
+        const sourceEndFrame = Math.max(0, this.left.length - 3);
+        const sourceIsActive = this.sourceFrame < sourceEndFrame;
+        const norm = sourceIsActive && this.left.length > 1
+          ? Math.min(1, this.sourceFrame / (this.left.length - 1))
+          : 1;
         const lowPassCutoff = this.cutoffFromNorm(this.valueAt(this.lowPassCurve, norm));
         const highPassCutoff = this.cutoffFromNorm(this.valueAt(this.highPassCurve, norm));
         const bandPassCenter = this.cutoffFromNorm(this.valueAt(this.bandPassCenterCurve, norm));
@@ -469,8 +495,8 @@ class TimbreFilterProcessor extends AudioWorkletProcessor {
         const delayFeedback = this.modulationFeedbackFromNorm(this.valueAt(this.delayFeedbackCurve, norm));
         const delayMix = this.combMixFromNorm(this.valueAt(this.delayMixCurve, norm));
         const order = this.orderedEffects();
-        let dryL = this.read(this.left, this.sourceFrame);
-        let dryR = this.read(this.right, this.sourceFrame);
+        let dryL = sourceIsActive ? this.read(this.left, this.sourceFrame) : 0;
+        let dryR = sourceIsActive ? this.read(this.right, this.sourceFrame) : 0;
         this.resetInactiveStates(order);
         for (const effectName of order) {
           if (effectName === "lowpass") {
@@ -501,9 +527,23 @@ class TimbreFilterProcessor extends AudioWorkletProcessor {
         l *= this.settings.outputGain;
         r *= this.settings.outputGain;
 
-        this.sourceFrame += this.sampleRateSource / sampleRate;
-        if (this.sourceFrame >= this.left.length - 3) {
-          this.sourceFrame = this.left.length - 3;
+        if (sourceIsActive) {
+          this.sourceFrame += this.sampleRateSource / sampleRate;
+          if (this.sourceFrame >= sourceEndFrame) {
+            this.sourceFrame = sourceEndFrame;
+            this.tailFramesRemaining = Math.round(this.delayTailSeconds() * sampleRate);
+            if (this.tailFramesRemaining <= 0) {
+              this.settings.playing = false;
+              this.port.postMessage({ type: "ended", token: this.token });
+            }
+          }
+        } else if (this.tailFramesRemaining > 0) {
+          this.tailFramesRemaining -= 1;
+          if (this.tailFramesRemaining <= 0) {
+            this.settings.playing = false;
+            this.port.postMessage({ type: "ended", token: this.token });
+          }
+        } else {
           this.settings.playing = false;
           this.port.postMessage({ type: "ended", token: this.token });
         }
