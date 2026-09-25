@@ -14,7 +14,7 @@ class TimbreFilterProcessor extends AudioWorkletProcessor {
     this.bandPassWidthCurve = [{ x: 0, y: 0 }, { x: 1, y: 0 }];
     this.combDelayCurve = [{ x: 0, y: 0.52 }, { x: 1, y: 0.52 }];
     this.combFeedbackCurve = [{ x: 0, y: 0.526316 }, { x: 1, y: 0.526316 }];
-    this.combMixCurve = [{ x: 0, y: 0.55 }, { x: 1, y: 0.55 }];
+    this.combMixCurve = [{ x: 0, y: 0.8 }, { x: 1, y: 0.8 }];
     this.flangerDelayCurve = [{ x: 0, y: 0.598105 }, { x: 1, y: 0.598105 }];
     this.flangerDepthCurve = [{ x: 0, y: 0.45 }, { x: 1, y: 0.45 }];
     this.flangerRateCurve = [{ x: 0, y: 0.52 }, { x: 1, y: 0.52 }];

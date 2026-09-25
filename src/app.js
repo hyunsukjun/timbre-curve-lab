@@ -121,7 +121,7 @@ let currentBandPassWidth = 0;
 const currentComb = {
   delayMs: 8,
   feedback: 0.5,
-  mix: 0.55
+  mix: 0.8
 };
 const currentFlanger = {
   delayMs: 3,
@@ -159,7 +159,7 @@ const defaultBandPassCenterY = 0.56;
 const defaultBandPassWidthY = 0;
 const defaultCombDelayY = 0.52;
 const defaultCombFeedbackY = 0.526316;
-const defaultCombMixY = 0.55;
+const defaultCombMixY = 0.8;
 const defaultFlangerDelayY = 0.598105;
 const defaultFlangerDepthY = 0.45;
 const defaultFlangerRateY = 0.52;
@@ -1360,7 +1360,7 @@ async function setupAudio() {
     throw new Error("AudioWorklet is not available. Use a current Chrome, Edge, or Safari version over HTTPS.");
   }
 
-    await audioContext.audioWorklet.addModule("src/timbre-worklet.js?v=20260901-18");
+    await audioContext.audioWorklet.addModule("src/timbre-worklet.js?v=20260926-01");
     node = new AudioWorkletNode(audioContext, "timbre-filter-processor", {
       numberOfInputs: 0,
       numberOfOutputs: 1,
