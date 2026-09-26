@@ -9,6 +9,11 @@ const resetButton = document.getElementById("resetButton");
 const chainDiagram = document.getElementById("chainDiagram");
 const canvas = document.getElementById("waveCanvas");
 const ctx = canvas.getContext("2d");
+const penTool = document.getElementById("penTool");
+const eraserTool = document.getElementById("eraserTool");
+const eraseModifier = /Mac|iPhone|iPad|iPod/.test(navigator.platform || navigator.userAgentData?.platform || "")
+  ? "metaKey"
+  : "ctrlKey";
 const lowpassMode = document.getElementById("lowpassMode");
 const highpassMode = document.getElementById("highpassMode");
 const bandpassMode = document.getElementById("bandpassMode");
@@ -107,6 +112,7 @@ let waveform = [];
 let activeCurve = null;
 let chainOrder = [];
 let draggedChainEffect = null;
+let selectedTool = "pen";
 let selectedPoint = null;
 let hoveredPoint = null;
 let dragging = false;
@@ -1304,6 +1310,7 @@ function useAudioBuffer(nextBuffer, label) {
   clearDownload();
   downloadReadout.textContent = "ready";
   playheadSeconds = 0;
+  setTransportBusy(false);
   draw();
 }
 
@@ -1797,12 +1804,48 @@ function findPointNearScreen(screenPosition, curve, name = activeCurve) {
   ));
 }
 
+function isErasing(event) {
+  return selectedTool === "eraser" || Boolean(event?.[eraseModifier]);
+}
+
+function updateEraseCursor(event) {
+  canvas.classList.toggle("eraseMode", isErasing(event));
+}
+
+function setTool(tool) {
+  selectedTool = tool;
+  penTool.classList.toggle("active", tool === "pen");
+  eraserTool.classList.toggle("active", tool === "eraser");
+  penTool.setAttribute("aria-pressed", String(tool === "pen"));
+  eraserTool.setAttribute("aria-pressed", String(tool === "eraser"));
+  selectedPoint = null;
+  dragging = false;
+  updateEraseCursor();
+  draw();
+}
+
+penTool.addEventListener("click", () => setTool("pen"));
+eraserTool.addEventListener("click", () => setTool("eraser"));
+
 canvas.addEventListener("pointerdown", (event) => {
+  if (event.button !== 0) return;
   if (!activeCurve) return;
   if (!effects[effectForCurve(activeCurve)].enabled) return;
   const p = pointerToPoint(event);
   const curve = curves[activeCurve];
   selectedPoint = findPointNearScreen(pointerToScreenPosition(event), curve);
+  if (isErasing(event)) {
+    event.preventDefault();
+    if (selectedPoint > 0 && selectedPoint < curve.length - 1) {
+      curve.splice(selectedPoint, 1);
+      selectedPoint = null;
+      hoveredPoint = null;
+      editedCurves[activeCurve] = true;
+      sendCurves();
+      draw();
+    }
+    return;
+  }
   if (selectedPoint < 0) {
     curve.push(p);
     sortCurve(curve);
@@ -1817,6 +1860,7 @@ canvas.addEventListener("pointerdown", (event) => {
 });
 
 canvas.addEventListener("pointermove", (event) => {
+  updateEraseCursor(event);
   if (!activeCurve) return;
   const p = pointerToPoint(event);
   const curve = curves[activeCurve];
@@ -1859,6 +1903,12 @@ canvas.addEventListener("pointerleave", () => {
   hoveredPoint = null;
   draw();
 });
+
+canvas.addEventListener("pointerenter", updateEraseCursor);
+
+window.addEventListener("keydown", updateEraseCursor);
+window.addEventListener("keyup", updateEraseCursor);
+window.addEventListener("blur", () => updateEraseCursor());
 
 canvas.addEventListener("dblclick", (event) => {
   if (!buffer) return;

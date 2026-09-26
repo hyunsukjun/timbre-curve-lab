@@ -196,6 +196,11 @@ button:disabled {
   background: #bfc9bd;
   border: 1px solid #52625d;
   border-radius: 6px;
+  cursor: crosshair;
+}
+
+#waveCanvas.eraseMode {
+  cursor: url("eraser-cursor.svg") 5 25, crosshair;
 }
 
 .chainLabel {
@@ -294,6 +299,40 @@ button:disabled {
   align-items: center;
   gap: 8px;
   flex-wrap: wrap;
+}
+
+.toolToggle {
+  display: inline-flex;
+  height: 30px;
+  margin-left: 6px;
+  border: 1px solid #46545c;
+  border-radius: 6px;
+  overflow: hidden;
+}
+
+.effectBar .toolToggle button {
+  width: 34px;
+  min-width: 34px;
+  height: 28px;
+  padding: 0;
+  border: 0;
+  border-radius: 0;
+  background: #1e2930;
+  color: #c8d1d3;
+}
+
+.effectBar .toolToggle button + button {
+  border-left: 1px solid #46545c;
+}
+
+.effectBar .toolToggle button.active {
+  background: #17342f;
+  color: #c9fff0;
+}
+
+.effectBar .toolToggle button:focus-visible {
+  outline: 2px solid var(--mint);
+  outline-offset: -2px;
 }
 
 .effectModule {
