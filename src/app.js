@@ -786,7 +786,7 @@ function getSettings() {
 
 async function getOfflineRenderer() {
   if (!renderOffline) {
-    const module = await import("./offline-render.js?v=20260926-02");
+    const module = await import("./offline-render.js?v=20260928-01");
     renderOffline = module.renderOffline;
   }
   return renderOffline;
@@ -903,20 +903,20 @@ function drawPointLabel(name, point, color) {
         : formatCutoff(cutoffFromNorm(point.y))
     ));
   ctx.save();
-  ctx.font = "12px Inter, ui-sans-serif, system-ui, sans-serif";
+  ctx.font = "600 11px system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif";
   const metrics = ctx.measureText(label);
   const labelW = metrics.width + 14;
   const labelH = 22;
   const x = Math.max(axisWidth + 6, Math.min(w - labelW - 6, px + 10));
   const y = Math.max(6, Math.min(h - labelH - 6, py - 30));
-  ctx.fillStyle = "rgba(17, 24, 26, 0.82)";
+  ctx.fillStyle = "rgba(7, 17, 28, 0.96)";
   ctx.strokeStyle = color;
   ctx.lineWidth = 1;
   ctx.beginPath();
   ctx.roundRect(x, y, labelW, labelH, 5);
   ctx.fill();
   ctx.stroke();
-  ctx.fillStyle = "#edf3f2";
+  ctx.fillStyle = "#e8f0f6";
   ctx.textBaseline = "middle";
   ctx.fillText(label, x + 7, y + (labelH / 2));
   ctx.restore();
@@ -953,7 +953,7 @@ function drawCurve(name, curve, color, width, fillPoints) {
       ctx.arc(position.x, position.y, 6, 0, Math.PI * 2);
       ctx.fillStyle = color;
       ctx.fill();
-      ctx.strokeStyle = "#111316";
+      ctx.strokeStyle = "#06111c";
       ctx.lineWidth = 2;
       ctx.stroke();
       if (i === selectedPoint || i === hoveredPoint) {
@@ -970,27 +970,27 @@ function drawLowPassAxis() {
   const activeEffect = effectForCurve(activeCurve);
   ctx.save();
   ctx.globalAlpha = activeEffect && effects[activeEffect].enabled ? 1 : 0.52;
-  ctx.fillStyle = "rgba(21, 29, 34, 0.62)";
+  ctx.fillStyle = "rgba(7, 17, 28, 0.74)";
   ctx.fillRect(0, 0, axisWidth, h);
-  ctx.strokeStyle = "rgba(31, 36, 38, 0.55)";
+  ctx.strokeStyle = "rgba(104, 145, 178, 0.62)";
   ctx.beginPath();
   ctx.moveTo(axisWidth + 0.5, 0);
   ctx.lineTo(axisWidth + 0.5, h);
   ctx.stroke();
-  ctx.font = "12px Inter, ui-sans-serif, system-ui, sans-serif";
+  ctx.font = "600 11px system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif";
   ctx.textAlign = "right";
   ctx.textBaseline = "middle";
   for (const hz of labels) {
     const y = yFromCutoff(hz) * h;
     const labelY = Math.max(10, Math.min(h - 10, y));
-    ctx.strokeStyle = "rgba(55, 65, 55, 0.30)";
+    ctx.strokeStyle = "rgba(72, 111, 143, 0.28)";
     ctx.beginPath();
     ctx.moveTo(axisWidth - 8, y);
     ctx.lineTo(canvasCssWidth, y);
     ctx.stroke();
-    ctx.fillStyle = "#263135";
+    ctx.fillStyle = "rgba(13, 27, 41, 0.92)";
     ctx.fillRect(4, labelY - 9, axisWidth - 14, 18);
-    ctx.fillStyle = "#d9e7e3";
+    ctx.fillStyle = "#aabccc";
     ctx.fillText(formatCutoff(hz), axisWidth - 11, labelY);
   }
   ctx.restore();
@@ -1008,27 +1008,27 @@ function drawWidthAxis() {
   const activeEffect = effectForCurve(activeCurve);
   ctx.save();
   ctx.globalAlpha = activeEffect && effects[activeEffect].enabled ? 1 : 0.52;
-  ctx.fillStyle = "rgba(21, 29, 34, 0.62)";
+  ctx.fillStyle = "rgba(7, 17, 28, 0.74)";
   ctx.fillRect(0, 0, axisWidth, h);
-  ctx.strokeStyle = "rgba(31, 36, 38, 0.55)";
+  ctx.strokeStyle = "rgba(104, 145, 178, 0.62)";
   ctx.beginPath();
   ctx.moveTo(axisWidth + 0.5, 0);
   ctx.lineTo(axisWidth + 0.5, h);
   ctx.stroke();
-  ctx.font = "12px Inter, ui-sans-serif, system-ui, sans-serif";
+  ctx.font = "600 11px system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif";
   ctx.textAlign = "right";
   ctx.textBaseline = "middle";
   for (const label of labels) {
     const y = (1 - label.value) * h;
     const labelY = Math.max(10, Math.min(h - 10, y));
-    ctx.strokeStyle = "rgba(55, 65, 55, 0.30)";
+    ctx.strokeStyle = "rgba(72, 111, 143, 0.28)";
     ctx.beginPath();
     ctx.moveTo(axisWidth - 8, y);
     ctx.lineTo(canvasCssWidth, y);
     ctx.stroke();
-    ctx.fillStyle = "#263135";
+    ctx.fillStyle = "rgba(13, 27, 41, 0.92)";
     ctx.fillRect(4, labelY - 9, axisWidth - 14, 18);
-    ctx.fillStyle = "#d9e7e3";
+    ctx.fillStyle = "#aabccc";
     ctx.fillText(label.text, axisWidth - 11, labelY);
   }
   ctx.restore();
@@ -1106,27 +1106,27 @@ function drawValueAxis() {
   const activeEffect = effectForCurve(activeCurve);
   ctx.save();
   ctx.globalAlpha = activeEffect && effects[activeEffect].enabled ? 1 : 0.52;
-  ctx.fillStyle = "rgba(21, 29, 34, 0.62)";
+  ctx.fillStyle = "rgba(7, 17, 28, 0.74)";
   ctx.fillRect(0, 0, axisWidth, h);
-  ctx.strokeStyle = "rgba(31, 36, 38, 0.55)";
+  ctx.strokeStyle = "rgba(104, 145, 178, 0.62)";
   ctx.beginPath();
   ctx.moveTo(axisWidth + 0.5, 0);
   ctx.lineTo(axisWidth + 0.5, h);
   ctx.stroke();
-  ctx.font = "12px Inter, ui-sans-serif, system-ui, sans-serif";
+  ctx.font = "600 11px system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif";
   ctx.textAlign = "right";
   ctx.textBaseline = "middle";
   for (const label of labels) {
     const y = (1 - label.value) * h;
     const labelY = Math.max(10, Math.min(h - 10, y));
-    ctx.strokeStyle = "rgba(55, 65, 55, 0.30)";
+    ctx.strokeStyle = "rgba(72, 111, 143, 0.28)";
     ctx.beginPath();
     ctx.moveTo(axisWidth - 8, y);
     ctx.lineTo(canvasCssWidth, y);
     ctx.stroke();
-    ctx.fillStyle = "#263135";
+    ctx.fillStyle = "rgba(13, 27, 41, 0.92)";
     ctx.fillRect(4, labelY - 9, axisWidth - 14, 18);
-    ctx.fillStyle = "#d9e7e3";
+    ctx.fillStyle = "#aabccc";
     ctx.fillText(label.text, axisWidth - 11, labelY);
   }
   ctx.restore();
@@ -1169,13 +1169,33 @@ function draw() {
   const h = canvasCssHeight;
   ctx.setTransform(scale, 0, 0, scale, 0, 0);
   ctx.clearRect(0, 0, w, h);
-  ctx.fillStyle = "#bdc8aa";
+  ctx.fillStyle = "#0c1f31";
   ctx.fillRect(0, 0, w, h);
 
-  ctx.strokeStyle = "rgba(55, 65, 55, 0.36)";
+  const plotW = Math.max(1, w - axisWidth);
+  ctx.strokeStyle = "rgba(63, 101, 132, 0.12)";
+  ctx.lineWidth = 1;
+  for (let i = 0; i <= 40; i += 1) {
+    if (i % 4 === 0) continue;
+    const x = axisWidth + ((i / 40) * plotW);
+    ctx.beginPath();
+    ctx.moveTo(x, 0);
+    ctx.lineTo(x, h);
+    ctx.stroke();
+  }
+  for (let i = 1; i < 8; i += 1) {
+    if (i % 2 === 0) continue;
+    const y = (i / 8) * h;
+    ctx.beginPath();
+    ctx.moveTo(axisWidth, y);
+    ctx.lineTo(w, y);
+    ctx.stroke();
+  }
+
+  ctx.strokeStyle = "rgba(79, 121, 155, 0.28)";
   ctx.lineWidth = 1;
   for (let i = 0; i <= 10; i += 1) {
-    const x = axisWidth + ((i / 10) * Math.max(1, w - axisWidth));
+    const x = axisWidth + ((i / 10) * plotW);
     ctx.beginPath();
     ctx.moveTo(x, 0);
     ctx.lineTo(x, h);
@@ -1184,7 +1204,7 @@ function draw() {
   for (let i = 1; i < 4; i += 1) {
     const y = (i / 4) * h;
     ctx.beginPath();
-    ctx.moveTo(0, y);
+    ctx.moveTo(axisWidth, y);
     ctx.lineTo(w, y);
     ctx.stroke();
   }
@@ -1195,12 +1215,11 @@ function draw() {
   else drawLowPassAxis();
 
   if (waveform.length > 0) {
-    ctx.fillStyle = "rgba(108, 101, 72, 0.38)";
+    ctx.fillStyle = "rgba(128, 158, 186, 0.48)";
     const midTop = h * 0.32;
     const midBottom = h * 0.70;
     const ampTop = h * 0.24;
     const ampBottom = h * 0.18;
-    const plotW = Math.max(1, w - axisWidth);
     const step = Math.max(1, Math.floor(waveform.length / plotW));
     for (let x = 0; x < plotW; x += 1) {
       const sample = waveform[Math.min(waveform.length - 1, x * step)] || 0;
@@ -1220,11 +1239,10 @@ function draw() {
   }
 
   if (buffer) {
-    const plotW = Math.max(1, w - axisWidth);
     const x = axisWidth + ((playheadSeconds / buffer.duration) * plotW);
     ctx.save();
-    ctx.strokeStyle = "#1f2426";
-    ctx.lineWidth = 1.5;
+    ctx.strokeStyle = "rgba(226, 236, 244, 0.86)";
+    ctx.lineWidth = 1.25;
     ctx.beginPath();
     ctx.moveTo(x, 0);
     ctx.lineTo(x, h);
@@ -1367,7 +1385,7 @@ async function setupAudio() {
     throw new Error("AudioWorklet is not available. Use a current Chrome, Edge, or Safari version over HTTPS.");
   }
 
-    await audioContext.audioWorklet.addModule("src/timbre-worklet.js?v=20260926-02");
+    await audioContext.audioWorklet.addModule("src/timbre-worklet.js?v=20260928-01");
     node = new AudioWorkletNode(audioContext, "timbre-filter-processor", {
       numberOfInputs: 0,
       numberOfOutputs: 1,
