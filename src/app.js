@@ -1,6 +1,9 @@
+import { OutputMeterAnalyzer } from "./output-meter.js?v=20260930-02";
+
 const fileInput = document.getElementById("fileInput");
 const fileStatus = document.getElementById("fileStatus");
 const timeStatus = document.getElementById("timeStatus");
+const playbackScrubber = document.getElementById("playbackScrubber");
 const playButton = document.getElementById("playButton");
 const stopButton = document.getElementById("stopButton");
 const downloadButton = document.getElementById("downloadButton");
@@ -43,6 +46,8 @@ const cutoffReadout = document.getElementById("cutoffReadout");
 const downloadReadout = document.getElementById("downloadReadout");
 const modeReadout = document.getElementById("modeReadout");
 const pointsReadout = document.getElementById("pointsReadout");
+const meterRows = Array.from(document.querySelectorAll("[data-meter-channel]"));
+const meterClipButton = document.getElementById("meterClipButton");
 
 const transformSettings = {
   outputGain: 0.95
@@ -106,6 +111,7 @@ const effects = {
 let audioContext;
 let audioSetupPromise = null;
 let node;
+let outputMeter;
 let workletBufferLoaded = false;
 let buffer;
 let waveform = [];
@@ -126,25 +132,25 @@ let currentBandPassQ = 2.2;
 let currentBandPassWidth = 0;
 const currentComb = {
   delayMs: 8,
-  feedback: 0.5,
-  mix: 0.8
+  feedback: 0.8,
+  mix: 0.9
 };
 const currentFlanger = {
-  delayMs: 3,
-  depthMs: 4,
-  rateHz: 0.35,
-  feedback: 0.45
+  delayMs: 2,
+  depthMs: 6,
+  rateHz: 0.3,
+  feedback: 0.65
 };
 const currentChorus = {
-  delayMs: 18,
-  depthMs: 8,
-  rateHz: 0.45,
-  mix: 0.45
+  delayMs: 22,
+  depthMs: 10,
+  rateHz: 0.65,
+  mix: 0.55
 };
 const currentDelay = {
-  timeMs: 350,
-  feedback: 0.35,
-  mix: 0.35
+  timeMs: 420,
+  feedback: 0.48,
+  mix: 0.42
 };
 let downloadUrl = null;
 let renderAbortController = null;
@@ -154,6 +160,16 @@ let renderOffline = null;
 let canvasCssWidth = 1;
 let canvasCssHeight = 1;
 let canvasBaseWidth = 0;
+let isScrubbing = false;
+let meterAnimationFrame = 0;
+let meterLastFrameTime = performance.now();
+let meterClipLatched = false;
+const meterDisplay = meterRows.map(() => ({
+  peak: 0,
+  rms: 0,
+  hold: 0,
+  holdUntil: 0
+}));
 const canvasMinimumWidth = 1800;
 const canvasBaseHeight = 620;
 const axisWidth = 62;
@@ -163,20 +179,20 @@ const defaultCutoffY = 0.53;
 const defaultHighPassY = 0.38;
 const defaultBandPassCenterY = 0.56;
 const defaultBandPassWidthY = 0;
-const defaultCombDelayY = 0.52;
-const defaultCombFeedbackY = 0.526316;
-const defaultCombMixY = 0.8;
-const defaultFlangerDelayY = 0.598105;
-const defaultFlangerDepthY = 0.45;
-const defaultFlangerRateY = 0.52;
-const defaultFlangerFeedbackY = 0.529412;
-const defaultChorusDelayY = 0.32;
-const defaultChorusDepthY = 0.4;
-const defaultChorusRateY = 0.62134;
-const defaultChorusMixY = 0.45;
-const defaultDelayTimeY = 0.178571;
-const defaultDelayFeedbackY = 0.411765;
-const defaultDelayMixY = 0.35;
+const defaultCombDelayY = 0.523296;
+const defaultCombFeedbackY = 0.842105;
+const defaultCombMixY = 0.9;
+const defaultFlangerDelayY = 0.462756;
+const defaultFlangerDepthY = 0.6;
+const defaultFlangerRateY = 0.490459;
+const defaultFlangerFeedbackY = 0.764706;
+const defaultChorusDelayY = 0.48;
+const defaultChorusDepthY = 0.5;
+const defaultChorusRateY = 0.69477;
+const defaultChorusMixY = 0.55;
+const defaultDelayTimeY = 0.228571;
+const defaultDelayFeedbackY = 0.564706;
+const defaultDelayMixY = 0.42;
 
 const curves = {
   lowpass: [{ x: 0, y: defaultCutoffY }, { x: 1, y: defaultCutoffY }],
@@ -485,6 +501,58 @@ function formatClock(seconds) {
   return `${String(minutes).padStart(2, "0")}:${remaining.toFixed(2).padStart(5, "0")}`;
 }
 
+function linearToDb(value) {
+  return value > 0.000001 ? 20 * Math.log10(value) : -Infinity;
+}
+
+function meterPosition(value) {
+  const db = linearToDb(value);
+  return Math.max(0, Math.min(1, (db + 60) / 60));
+}
+
+function smoothMeterValue(current, target, elapsedMs, attackMs, releaseMs) {
+  const time = target > current ? attackMs : releaseMs;
+  const amount = 1 - Math.exp(-elapsedMs / Math.max(1, time));
+  return current + ((target - current) * amount);
+}
+
+function updateMeterDisplay(now) {
+  const elapsedMs = Math.min(100, Math.max(0, now - meterLastFrameTime));
+  meterLastFrameTime = now;
+  const measuredChannels = outputMeter?.read() || [];
+
+  meterRows.forEach((row, index) => {
+    const measured = measuredChannels[index] || { peak: 0, rms: 0, clipped: false };
+    const display = meterDisplay[index];
+    display.peak = smoothMeterValue(display.peak, measured.peak, elapsedMs, 18, 320);
+    display.rms = smoothMeterValue(display.rms, measured.rms, elapsedMs, 45, 420);
+
+    if (measured.peak >= display.hold) {
+      display.hold = measured.peak;
+      display.holdUntil = now + 1000;
+    } else if (now > display.holdUntil) {
+      display.hold = smoothMeterValue(display.hold, measured.peak, elapsedMs, 0, 700);
+    }
+
+    if (measured.clipped) meterClipLatched = true;
+    row.querySelector(".meterRms").style.transform = `scaleX(${meterPosition(display.rms)})`;
+    row.querySelector(".meterPeak").style.transform = `scaleX(${meterPosition(display.peak)})`;
+    row.querySelector(".meterHold").style.left = `${meterPosition(display.hold) * 100}%`;
+    const peakDb = linearToDb(display.peak);
+    row.querySelector(".meterValue").textContent = Number.isFinite(peakDb) ? peakDb.toFixed(1) : "-∞";
+  });
+
+  meterClipButton.classList.toggle("clipped", meterClipLatched);
+  meterClipButton.setAttribute("aria-pressed", String(meterClipLatched));
+  meterAnimationFrame = requestAnimationFrame(updateMeterDisplay);
+}
+
+function startMeterAnimation() {
+  if (meterAnimationFrame) return;
+  meterLastFrameTime = performance.now();
+  meterAnimationFrame = requestAnimationFrame(updateMeterDisplay);
+}
+
 function formatCutoff(hz) {
   return hz >= 1000 ? `${(hz / 1000).toFixed(1)} kHz` : `${Math.round(hz)} Hz`;
 }
@@ -711,6 +779,7 @@ function clearDownload() {
 function setTransportBusy(isBusy) {
   playButton.disabled = isBusy || !buffer;
   stopButton.disabled = isBusy || !buffer;
+  playbackScrubber.disabled = isBusy || !buffer;
   downloadButton.disabled = isBusy || !buffer;
   fileInput.disabled = isBusy;
 }
@@ -718,6 +787,7 @@ function setTransportBusy(isBusy) {
 function setRenderBusy(isBusy) {
   playButton.disabled = isBusy || !buffer;
   stopButton.disabled = isBusy || !buffer;
+  playbackScrubber.disabled = isBusy || !buffer;
   fileInput.disabled = isBusy;
   downloadButton.disabled = !buffer;
 }
@@ -786,7 +856,7 @@ function getSettings() {
 
 async function getOfflineRenderer() {
   if (!renderOffline) {
-    const module = await import("./offline-render.js?v=20260928-01");
+    const module = await import("./offline-render.js?v=20260930-02");
     renderOffline = module.renderOffline;
   }
   return renderOffline;
@@ -1251,6 +1321,9 @@ function draw() {
   }
 
   timeStatus.textContent = buffer ? `${formatClock(playheadSeconds)} / ${formatClock(buffer.duration)}` : "00:00.00 / 00:00.00";
+  if (!isScrubbing) {
+    playbackScrubber.value = buffer?.duration ? String(Math.max(0, Math.min(1, playheadSeconds / buffer.duration))) : "0";
+  }
   cutoffReadout.textContent = activeEffect && effects[activeEffect].enabled
     ? (
       activeEffect === "comb"
@@ -1367,6 +1440,7 @@ async function ensureAudio() {
       audioSetupPromise = setupAudio().catch((error) => {
         audioContext = null;
         node = null;
+        outputMeter = null;
         throw error;
       }).finally(() => {
         audioSetupPromise = null;
@@ -1385,13 +1459,16 @@ async function setupAudio() {
     throw new Error("AudioWorklet is not available. Use a current Chrome, Edge, or Safari version over HTTPS.");
   }
 
-    await audioContext.audioWorklet.addModule("src/timbre-worklet.js?v=20260928-01");
+    await audioContext.audioWorklet.addModule("src/timbre-worklet.js?v=20260930-02");
     node = new AudioWorkletNode(audioContext, "timbre-filter-processor", {
       numberOfInputs: 0,
       numberOfOutputs: 1,
       outputChannelCount: [2]
     });
-    node.connect(audioContext.destination);
+    outputMeter = new OutputMeterAnalyzer(audioContext, { channelCount: 2 });
+    node.connect(outputMeter.input);
+    outputMeter.connect(audioContext.destination);
+    startMeterAnimation();
     node.port.onmessage = (event) => {
       if (!isCurrentPlaybackMessage(event.data)) return;
       if (event.data.type === "position") {
@@ -1477,6 +1554,39 @@ fileInput.addEventListener("change", async () => {
 playButton.addEventListener("click", playAudio);
 
 stopButton.addEventListener("click", stopAudio);
+
+function seekFromScrubber() {
+  if (!buffer) return;
+  const progress = Math.max(0, Math.min(1, Number(playbackScrubber.value) || 0));
+  playheadSeconds = progress * buffer.duration;
+  node?.port.postMessage({ type: "seek", seconds: playheadSeconds, token: playbackToken });
+  draw();
+}
+
+playbackScrubber.addEventListener("pointerdown", () => {
+  isScrubbing = true;
+});
+
+playbackScrubber.addEventListener("input", seekFromScrubber);
+
+playbackScrubber.addEventListener("change", () => {
+  seekFromScrubber();
+  isScrubbing = false;
+});
+
+playbackScrubber.addEventListener("pointerup", () => {
+  isScrubbing = false;
+});
+
+playbackScrubber.addEventListener("pointercancel", () => {
+  isScrubbing = false;
+});
+
+meterClipButton.addEventListener("click", () => {
+  meterClipLatched = false;
+  meterClipButton.classList.remove("clipped");
+  meterClipButton.setAttribute("aria-pressed", "false");
+});
 
 downloadButton.addEventListener("click", async () => {
   if (!buffer) return;

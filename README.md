@@ -39,6 +39,8 @@ The tool is especially useful before introducing more technical systems such as 
 - Realtime `Play`: Web Audio API / AudioWorklet filter engine.
 - `Download WAV`: browser-based offline filter export.
 
+Downloaded files use stereo signed 24-bit PCM WAV and preserve the decoded source sample rate. The built-in sample normally follows the browser AudioContext rate, commonly 48 kHz.
+
 This version is a classroom workflow prototype for curve-based timbre shaping. The current engine uses Low Pass, High Pass, Band Pass, Comb, Flanger, Chorus, and Delay so the first musical goal stays simple: draw a curve and hear the color of the sound change over time.
 
 ## Browser Compatibility
@@ -52,6 +54,8 @@ For long-term maintenance, test the site once or twice a semester in the browser
 ## GitHub Pages
 
 This is a static website. It can be hosted directly with GitHub Pages from the repository root.
+
+Public site: [https://hyunsukjun.github.io/timbre-curve-lab/](https://hyunsukjun.github.io/timbre-curve-lab/)
 
 ## Run Locally
 
@@ -70,7 +74,20 @@ Do not use `file://` for regular testing. Browser audio features are more reliab
 
 ## Current Stage
 
-This project is currently in local classroom-prototype development. The next work should focus on interaction, curve editing, sound quality, and export behavior before any public GitHub Pages deployment.
+This project is a public classroom prototype under active refinement. Its implemented web behavior is the current reference, while formal cross-browser listening tests and longer-file validation remain ongoing work.
+
+## Product Documentation
+
+The following files preserve product behavior separately from the current web platform:
+
+- [Development guidelines](DEVELOPMENT_GUIDELINES.md)
+- [Curve Lab design system](CURVE_LAB_DESIGN_SYSTEM.md)
+- [Feature registry](docs/FEATURE_REGISTRY.md)
+- [Parameter specification](docs/PARAMETER_SPEC.md)
+- [Interaction specification](docs/INTERACTION_SPEC.md)
+- [DSP behavior](docs/DSP_BEHAVIOR.md)
+- [Product decisions](docs/DECISIONS.md)
+- [Standalone migration notes](docs/STANDALONE_MIGRATION.md)
 
 ## Curve Lab Development Principles
 
