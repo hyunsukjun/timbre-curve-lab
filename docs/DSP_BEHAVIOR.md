@@ -29,7 +29,9 @@ At each output time, source-relative normalized time selects the two surrounding
 
 `value = a + (b - a)s(t)`
 
-This eases into and out of points. Preview and Render currently duplicate this formula.
+This eases into and out of points. Preview evaluates it for every AudioContext output sample; Render evaluates it for every source-rate output sample. The two engines currently duplicate this formula.
+
+Coincident or nearly coincident point times use a minimum denominator of `1e-6`. The resulting very fast transition is implemented behavior, but its preferred editing policy and listening limits are not yet formally decided.
 
 ## Filter Algorithms
 
@@ -51,6 +53,7 @@ There is no additional filter-coefficient smoothing. Smoothstep curve interpolat
 - Feedback path includes a one-pole damping update coefficient of 0.22.
 - The combed signal is `(input + delayed) * 0.5`, then blended by Mix.
 - Current buffer length is 120 ms at the active sample rate.
+- Feedback-buffer writes are clamped to +/-1.5 before the final limiter.
 
 ## Flanger
 
@@ -59,6 +62,7 @@ There is no additional filter-coefficient smoothing. Smoothstep curve interpolat
 - Base delay smoothing coefficient 0.0015 per sample.
 - Feedback clamp 0-0.85 with damping coefficient 0.35.
 - Output balance is fixed at 46% input and 54% delayed.
+- Feedback-buffer writes are clamped to +/-1.35 before the final limiter.
 - Right-channel LFO starts one quarter cycle after the left channel.
 
 ## Chorus
@@ -75,17 +79,19 @@ There is no additional filter-coefficient smoothing. Smoothstep curve interpolat
 - Delay Time 100-1500 ms, Feedback 0-0.85, Mix 0-100%.
 - Delay Time smoothing coefficient 0.0008 per sample.
 - Feedback path damping coefficient 0.22.
+- Feedback-buffer writes are clamped to +/-1.25 before the final limiter.
 - Render tail is estimated from maximum Delay Time and Feedback curves until approximately -60 dB (`0.001`), capped at 10 seconds.
 
 ## Safety And Gain
 
 Both engines apply output gain 0.95, then the same soft limiter:
 
-- non-finite sample -> 0,
 - input clamp -> +/-2,
 - threshold -> 0.92,
 - nonlinear compression above threshold,
 - output clamp -> +/-0.995.
+
+The current limiter does not explicitly replace `NaN` or `Infinity` with zero. The arithmetic clamps contain finite extreme values, but non-finite defense is not implemented and must not be claimed as verified behavior.
 
 Offline Render additionally scales the completed output downward only if measured peak exceeds 0.98. Preview does not perform this completed-buffer normalization. Therefore exact amplitudes can differ when the offline peak triggers this final scale.
 
@@ -130,14 +136,36 @@ Each channel sample occupies three bytes and maps `-1.0 .. +1.0` to `-8388608 ..
 | Gain/limiter | 0.95 + soft limiter | Same | Low |
 | Final normalization | None | Downward if peak > 0.98 | Audible level difference possible |
 | Delay tail | Plays after source until estimated end | Rendered with same estimate | Low, lifecycle should be retested |
-| Sample rate | AudioContext output with source-rate position conversion | Source sample rate | Browser resampling can differ |
+| Source-rate conversion | Source is read at `sourceRate / AudioContextRate` with linear interpolation | No source conversion; samples are processed at source rate | Medium/high for unlike rates; high-frequency response can differ |
+| Cutoff mapping sample rate | Uses AudioContext sample rate | Uses decoded source sample rate | Medium; maximum cutoff can differ for low-rate sources |
+| Source boundary | Stops linear reads three source frames before the buffer end | Processes the complete capped source length | Very low duration difference; boundary transient requires verification |
 | Channel layout | Stereo | Stereo | Low |
+| LFO start/reset | Stateful Worklet phases; right phase is assigned 0.25/0.5 on reset while the left phase is not always forced to zero | Fresh deterministic 0/0.25 and 0/0.5 phases per render | Medium; repeated Preview may start at a different sweep position |
+| Initial delay target | 8 ms Comb, 3 ms Flanger, 18 ms Chorus, 350 ms Delay, then smoothing | Same initial values | Low parity risk, but startup color differs from current UI defaults |
 
 The duplicate calculation code is a known structural risk. AudioWorklet module isolation explains separate files but does not remove the need for synchronized tests or a future shared pure-DSP module.
 
+The UI frequency axis is fixed at 40 Hz-18 kHz. Preview clamps its mapping against the AudioContext Nyquist region; Render clamps against the source sample rate. At common 44.1/48 kHz rates both usually reach 18 kHz, but a 22.05 kHz source can render with a much lower maximum than the UI or Preview suggests.
+
 ## Initialization And Reset
 
-Filter integrator states, delay buffers, LFO phases, and delay targets are reset when buffers/state require it or effects leave the active chain. Stereo LFO phase offsets are restored. Transport uses tokens to reject stale stop/end messages.
+Filter integrator states, delay buffers, and delay targets are reset when buffers/state require it or effects leave the active chain. Transport uses tokens to reject stale stop/end messages. Current LFO reset behavior is asymmetric: the right Flanger/Chorus phase is assigned 0.25/0.5, while an existing left phase is not always forced back to zero. This is current web behavior, not a recommended standalone contract.
+
+Only the Delay module determines the explicit post-source tail duration. Comb and Flanger feedback do not independently extend playback. If Delay is active, the entire chain continues processing zeros during the calculated Delay tail.
+
+## Default Reference Source
+
+The built-in source is eight seconds of identical left/right white noise in repeated percussive intervals:
+
+- noise burst 45.833 ms,
+- silent gap 20.833 ms,
+- attack 3 ms,
+- decay 14 ms,
+- sustain level 0.22,
+- release 18 ms,
+- noise gain 0.32.
+
+Noise values use unseeded `Math.random()`. Each page initialization therefore creates a different waveform. Preview and Render share the same generated buffer within one session, but separate sessions are not sample-identical. Use the committed/future fixed fixtures in `REFERENCE_SOUND_SET.md` for reproducible comparison rather than treating a newly generated default sample as a measurement reference.
 
 ## Known Limitations
 
@@ -147,3 +175,5 @@ Filter integrator states, delay buffers, LFO phases, and delay targets are reset
 - Multichannel layouts are not preserved.
 - Preview and Render share a specification but not one source module.
 - No deterministic automated audio-regression fixture is currently stored in the repository.
+- Unlike-rate Preview uses simple linear source interpolation without a dedicated anti-aliasing resampler.
+- LFO reset/start behavior is not fully deterministic across repeated Preview operations.

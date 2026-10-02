@@ -93,3 +93,4 @@ Do not label syntax success or a valid WAV header as a completed listening test.
 
 Documentation is part of completion. Record current values and reasons where known. Never invent historical rationale or listening approval. Preserve previous fine-tuning values in `docs/DECISIONS.md` when a meaningful value changes.
 
+For a listening-led DSP change, also record the source, curve fixture, monitoring context, comparison baseline, audible result, and acceptance decision in `docs/FINE_TUNING_LOG.md`. A value without this evidence is an implementation fact, not a verified musical decision.

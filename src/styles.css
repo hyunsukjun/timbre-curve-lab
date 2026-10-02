@@ -53,48 +53,11 @@
 }
 
 body {
-  position: relative;
-  isolation: isolate;
   margin: 0;
   min-height: 100vh;
   min-height: 100dvh;
   overflow: auto;
-  background:
-    linear-gradient(145deg, rgba(17, 44, 70, 0.34), transparent 48%),
-    linear-gradient(325deg, rgba(25, 32, 59, 0.28), transparent 55%),
-    var(--cl-bg-deep);
-}
-
-body::before,
-body::after {
-  position: fixed;
-  inset: -30%;
-  z-index: -1;
-  pointer-events: none;
-  content: "";
-  opacity: 0.34;
-  filter: blur(90px);
-  will-change: transform;
-}
-
-body::before {
-  background: linear-gradient(120deg, transparent 20%, rgba(21, 74, 112, 0.48) 50%, transparent 78%);
-  animation: cl-ambient-a 96s ease-in-out infinite alternate;
-}
-
-body::after {
-  background: linear-gradient(55deg, transparent 28%, rgba(45, 43, 91, 0.3) 56%, transparent 82%);
-  animation: cl-ambient-b 118s ease-in-out infinite alternate;
-}
-
-@keyframes cl-ambient-a {
-  from { transform: translate3d(-1.5%, -0.75%, 0) scale(1); }
-  to { transform: translate3d(1.5%, 0.75%, 0) scale(1.025); }
-}
-
-@keyframes cl-ambient-b {
-  from { transform: translate3d(1%, -1%, 0) scale(1.02); }
-  to { transform: translate3d(-1%, 1%, 0) scale(1); }
+  background: var(--cl-bg-deep);
 }
 
 button,
@@ -119,8 +82,7 @@ input {
   gap: var(--cl-space-6);
   padding: 18px var(--cl-space-6);
   border-bottom: 1px solid rgba(52, 86, 114, 0.72);
-  background: rgba(8, 19, 30, 0.78);
-  box-shadow: 0 8px 28px rgba(1, 7, 13, 0.22);
+  background: #08131e;
 }
 
 .brand {
@@ -215,7 +177,6 @@ button,
   cursor: pointer;
   text-decoration: none;
   white-space: nowrap;
-  transition: background-color 140ms ease, border-color 140ms ease, color 140ms ease;
 }
 
 button:hover,
@@ -316,7 +277,6 @@ button:disabled {
   border: 1px solid var(--cl-border-strong);
   border-radius: var(--cl-radius-lg);
   background: #0c1f31;
-  box-shadow: 0 16px 38px rgba(1, 7, 13, 0.2);
 }
 
 #waveCanvas {
@@ -348,8 +308,7 @@ button:disabled {
   padding: var(--cl-space-2) var(--cl-space-3);
   border: 1px solid var(--cl-border);
   border-radius: var(--cl-radius-lg);
-  background: rgba(10, 23, 36, 0.91);
-  box-shadow: 0 8px 24px rgba(1, 7, 13, 0.12);
+  background: #0a1724;
 }
 
 .chainTerminal {
@@ -379,7 +338,7 @@ button:disabled {
 .chainBlock {
   flex: 0 0 auto;
   cursor: grab;
-  transition: transform 140ms ease, opacity 140ms ease, box-shadow 140ms ease;
+  transition: transform 140ms ease, opacity 140ms ease;
 }
 
 .chainBlock:active {
@@ -389,7 +348,6 @@ button:disabled {
 .chainBlock.dragging {
   opacity: 0.45;
   transform: scale(0.98);
-  box-shadow: 0 0 0 2px rgba(237, 243, 242, 0.16);
 }
 
 .flangerModule.enabled,
@@ -420,10 +378,9 @@ button:disabled {
   padding: var(--cl-space-2) var(--cl-space-3);
   border: 1px solid var(--cl-border);
   border-radius: var(--cl-radius-lg);
-  background: rgba(13, 27, 41, 0.9);
+  background: var(--cl-surface);
   color: var(--cl-text-muted);
   font-size: 11.5px;
-  box-shadow: 0 10px 28px rgba(1, 7, 13, 0.14);
 }
 
 .effectChain,
@@ -692,8 +649,7 @@ button:disabled {
   padding: 10px 12px;
   border: 1px solid var(--cl-border);
   border-radius: var(--cl-radius-lg);
-  background: rgba(10, 23, 36, 0.91);
-  box-shadow: 0 8px 24px rgba(1, 7, 13, 0.12);
+  background: #0a1724;
 }
 
 .readout {
@@ -744,8 +700,7 @@ button:disabled {
   padding: 10px 12px;
   border: 1px solid var(--cl-border);
   border-radius: var(--cl-radius-lg);
-  background: rgba(10, 23, 36, 0.94);
-  box-shadow: 0 12px 30px rgba(1, 7, 13, 0.2);
+  background: #0a1724;
 }
 
 .bottomTransport {
@@ -847,7 +802,6 @@ button:disabled {
   border: 1px solid #233d53;
   border-radius: 2px;
   background: #050c13;
-  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.015);
 }
 
 .meterRms,
@@ -1023,14 +977,6 @@ button:disabled {
 }
 
 @media (prefers-reduced-motion: reduce) {
-  body::before,
-  body::after {
-    animation: none;
-    transform: none;
-  }
-
-  button,
-  .fileButton,
   .chainBlock {
     transition: none;
   }

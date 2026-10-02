@@ -38,6 +38,7 @@ Each effect can occur only once. Enabled state and currently edited state are di
 - Clicking an existing point selects it without adding another point.
 - Dragging a selected or newly created point updates time and value continuously.
 - The point list is sorted by normalized time after movement.
+- Current web behavior allows endpoint values and endpoint time positions to be dragged. Endpoint protection currently means deletion protection only; fixed `x=0` and `x=1` endpoints are a future product decision, not implemented behavior.
 - Current values are visible during hover or drag; transient drag feedback clears after release.
 - Band Width vertical distance is interpreted relative to the Center Frequency curve at the same time, creating a symmetric visual band.
 
@@ -53,6 +54,8 @@ Each effect can occur only once. Enabled state and currently edited state are di
 ## Point Hit And Overlap
 
 The current web hit radius is 18 CSS pixels. If multiple points overlap inside that radius, the first matching point in time-sorted order is selected. This outcome is implemented but not yet evaluated as the preferred long-term overlap policy.
+
+Points may currently share the same or nearly the same normalized time. Smoothstep evaluation uses a minimum segment denominator of `1e-6`; the preferred standalone policy for coincident-time points is `TO BE DOCUMENTED`.
 
 Status: `TO BE DOCUMENTED` for a future explicit overlap-selection rule.
 
@@ -119,4 +122,3 @@ Stored curve values do not change on resize. The web Canvas recalculates backing
 - Dragging Position updates the clock, Canvas playhead, Worklet read position, and audible continuation point.
 - Stop and natural completion return Position, the clock, and the playhead to zero.
 - L/R meters show the final Preview output. CLIP remains lit until its button is pressed.
-

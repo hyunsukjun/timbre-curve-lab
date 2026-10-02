@@ -31,10 +31,11 @@ This repository is the Timbre Curve Lab product. Its current web implementation 
 - Important product or architecture decision: update `docs/DECISIONS.md`.
 - Standalone portability impact: update `docs/STANDALONE_MIGRATION.md`.
 - Shared visual language or token: update `CURVE_LAB_DESIGN_SYSTEM.md`.
+- Reference input, curve fixture, expected measurement, or listening procedure: update `docs/REFERENCE_SOUND_SET.md`.
+- Listening-led parameter adjustment: append the evidence and result to `docs/FINE_TUNING_LOG.md`.
 
 Documentation must describe current behavior, not desired behavior. Mark unimplemented ideas as `PROPOSED`, unknown intent as `UNKNOWN`, and unverified listening claims as `TO BE VERIFIED`.
 
 ## Verification
 
 Scale verification to the change. For audio or interaction work, check initialization, default sample, real audio loading, Play/Stop/natural end/replay, all affected parameters, curve editing, Preview, WAV export, channel count, output length, browser console, syntax, and actual served files. Syntax checks and headers alone do not prove audible correctness.
-

@@ -59,10 +59,22 @@ Let `y` be clamped to `[0,1]`.
 | `flangerDamping` | Feedback brightness control | 0.35 | One-pole state update coefficient |
 | `delayDamping` | Echo brightness control | 0.22 | Internal; Tone control intentionally absent |
 | `limiterThreshold` | Soft limiting knee | 0.92 | Always active in both engines |
-| `limiterInputClamp` | Invalid/extreme defense | +/-2 | Non-finite values become zero |
+| `limiterInputClamp` | Finite extreme-value defense | +/-2 | `NaN`/`Infinity` are not explicitly replaced |
 | `limiterOutputClamp` | Final safety bound | +/-0.995 | Preview and Render |
 | `sourceExportCap` | Maximum processed source | 180 s | Tail may extend result |
 | `delayTailCap` | Maximum rendered echo tail | 10 s | Computed from max Delay curves |
+
+The delay smoothing values above are per-sample coefficients, not fixed millisecond constants. Their approximate one-pole time constants are:
+
+| Coefficient | About 44.1 kHz | About 48 kHz | Current use |
+|---|---:|---:|---|
+| `0.0025` | 9.1 ms | 8.3 ms | Comb Delay Time |
+| `0.0015` | 15.1 ms | 13.9 ms | Flanger/Chorus base Delay Time |
+| `0.0008` | 28.3 ms | 26.0 ms | Delay Time |
+
+The relation is `tau = -1 / (sampleRate * ln(1 - coefficient))`. A native engine must either preserve the coefficient exactly or deliberately preserve the time constant across sample rates; these are not identical choices.
+
+Current state initialization also begins Flanger at 3 ms, Chorus at 18 ms, and Delay at 350 ms before smoothing toward the selected/default curve values. This creates a short startup movement. Its musical necessity is `TO BE VERIFIED` before standalone implementation.
 
 ## Perceptual And Musical Notes
 
@@ -97,6 +109,7 @@ Current values are extracted from the implementation and prior approved product 
 - Do not treat this as a confirmed defect or solve it by simply boosting treble.
 - First experiment: A/B a small reduction of feedback-path damping while leaving all other values unchanged.
 - Evaluate Comb, Flanger, Chorus, and Delay separately with noise, percussion, harmonic instruments, and ordinary music before accepting an engine change.
+- Record every accepted or rejected experiment in `FINE_TUNING_LOG.md`; do not replace this baseline from memory alone.
 
 ## Standalone Mapping
 

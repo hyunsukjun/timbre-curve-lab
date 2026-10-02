@@ -41,6 +41,9 @@ No native framework, plugin format, or implementation language is selected by th
 5. Preserve effect-state reset behavior when modules are removed.
 6. Compare fixed, slow, and fast curves against reference exports before fine tuning.
 7. Distinguish expected platform resampling differences from algorithm drift.
+8. Decide through A/B testing whether to reproduce the web Preview's linear source interpolation or use a higher-quality native sample-rate converter.
+9. Do not reproduce the current asymmetric LFO reset or missing non-finite defense as product requirements without explicit approval.
+10. Preserve the current web build and accepted reference WAVs as the comparison baseline before changing damping, interpolation, limiter, or wet/dry behavior.
 
 ## Future State/Preset Schema
 
@@ -90,6 +93,8 @@ Before a Standalone implementation is considered equivalent, retain or create:
 
 The repository currently has no committed automated reference-audio pack. Status: `PROPOSED`.
 
+`REFERENCE_SOUND_SET.md` now defines the required fixture names, source properties, curve cases, measurements, and listening record. The actual fixed WAV fixtures and accepted reference renders are still `PROPOSED`; the specification must not be mistaken for completed evidence.
+
 ## Current Migration Risks
 
 1. Preview and Render duplicate DSP/mapping code, creating future drift risk.
@@ -97,6 +102,9 @@ The repository currently has no committed automated reference-audio pack. Status
 3. Current export is 24-bit stereo; fixed-48-kHz conversion is not part of the baseline and would require validated resampling.
 4. Browser decoding behavior is not a portable codec specification.
 5. Multichannel sources are reduced to stereo.
+6. The current default noise uses unseeded randomness and cannot reproduce sample-identical test runs.
+7. Preview performs linear source-rate conversion while Render works at source rate; this can affect high-frequency comparison.
+8. Current web endpoint points are deletion-protected but can still be moved away from normalized time 0 and 1.
 
 ## What Not To Migrate
 

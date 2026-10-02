@@ -111,7 +111,7 @@ Status meanings: `IDEA`, `PROPOSED`, `APPROVED`, `IMPLEMENTED`, `VERIFIED`, `DEP
 - **Purpose:** Create metallic resonance and pitched short-delay coloration.
 - **Parameters:** `combDelay`, `combFeedback`, `combMix`.
 - **Processing:** Fractional delay with linear interpolation, feedback damping, delay smoothing, dry/combed mix, and feedback clamp.
-- **Default character:** 8 ms, feedback 0.50, mix 80%.
+- **Default character:** 8 ms, feedback 0.80, mix 90%.
 - **Known limitation:** Fast Delay Time curves can enter flanger-like territory by design.
 
 ## TIMBRE-005: Flanger

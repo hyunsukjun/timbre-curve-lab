@@ -88,6 +88,8 @@ The following files preserve product behavior separately from the current web pl
 - [DSP behavior](docs/DSP_BEHAVIOR.md)
 - [Product decisions](docs/DECISIONS.md)
 - [Standalone migration notes](docs/STANDALONE_MIGRATION.md)
+- [Reference sound set](docs/REFERENCE_SOUND_SET.md)
+- [DSP fine-tuning log](docs/FINE_TUNING_LOG.md)
 
 ## Curve Lab Development Principles
 

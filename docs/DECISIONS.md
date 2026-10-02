@@ -103,6 +103,22 @@ This log records decisions that constrain future work. Dates are documentation d
 - **Reason:** Each module should reveal its characteristic sweep, doubling, or echo as soon as it is enabled, while preserving room for stronger curve experiments.
 - **Affects:** Default curves, Reset All, classroom first impression, Preview, Render, Standalone migration.
 
+## D-015: Preserve The Current Sonic Baseline Before Brightness Changes
+
+- **Date:** 2026-09-30
+- **Decision:** Treat the current clean, moist, and musically convincing sound as the A/B baseline. The perceived shortage of high-frequency saturation, surface grain, or liveliness is a listening question, not a confirmed defect.
+- **Reason:** The current restraint is musically credible. A broad treble boost or several simultaneous DSP changes would make it impossible to identify whether feedback damping, interpolation, wet/dry balance, resampling, or safety processing caused the difference.
+- **First experiment:** Reduce feedback-path damping slightly in one effect at a time, leaving every other variable unchanged.
+- **Acceptance evidence:** Noise, percussion, harmonic instrument, and ordinary music comparisons recorded in `FINE_TUNING_LOG.md`.
+- **Affects:** Comb, Flanger, Delay, reference listening, Standalone sonic target.
+
+## D-016: Separate Product Behavior From Web Artifacts During Migration
+
+- **Date:** 2026-09-30 documentation audit
+- **Decision:** Preserve parameter identity, mappings, curve meaning, chain behavior, and approved sound. Do not automatically preserve linear source-rate conversion, non-deterministic reference noise, asymmetric LFO reset, or main-thread rendering merely because they exist in the web code.
+- **Reason:** These details may affect the current result, but they have not all been approved as musical requirements. They need explicit A/B decisions before native implementation.
+- **Affects:** Reference fixtures, Preview/Render parity, native audio I/O, DSP Core boundaries.
+
 ## Unknown Or Pending Rationale
 
 - Formal listening environments and approval dates for most DSP fine-tuning values are unknown.
