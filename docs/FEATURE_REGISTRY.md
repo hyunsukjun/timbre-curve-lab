@@ -142,3 +142,8 @@ Status meanings: `IDEA`, `PROPOSED`, `APPROVED`, `IMPLEMENTED`, `VERIFIED`, `DEP
 ## Not Present
 
 Undo/Redo, preset saving, project files, touch-specific gestures, multichannel export, fixed-48-kHz resampling, and plugin hosting are not current features. Do not infer them from the common Curve Lab roadmap.
+
+## TCL-IDENTITY-001: Hub Identity Pilot
+
+Status: IMPLEMENTED (Timbre identity pilot). Header and favicon use canonical Timbre v0.9
+symbols retained in Hub v0.10. Product color #F4CB38. See `IDENTITY_PILOT.md`.

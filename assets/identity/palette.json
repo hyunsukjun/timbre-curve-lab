@@ -1,0 +1,19 @@
+{
+  "source": "CURVE LAB HUB for macOS / DesignIdentity / 2026-10-04-v0.10",
+  "symbolVersion": "Timbre v0.9 retained in v0.10",
+  "status": "Timbre-only identity pilot",
+  "colorSpace": "sRGB",
+  "colors": {
+    "audio": "#459BFF",
+    "timbre": "#F4CB38",
+    "space": "#A982FF",
+    "granular": "#EF4FA4",
+    "spectral": "#FF7047",
+    "oscillator": "#28CDB0"
+  },
+  "assets": {
+    "timbre-symbol.svg": "4dbb3a27852d1723c0ff39de441f6725d0da2386e4da7b5dfa10d6cf2fe8f118",
+    "timbre-micro.svg": "45c1ee1245fc19f8c1ba6a9d4f2dd7b39f3e0b95fa1c85e28ce86b85eb684fff",
+    "timbre-app.svg": "0d1d88c8c94b3184da28351a153257722c6ba5e8884504a08d0eb07050363b9f"
+  }
+}

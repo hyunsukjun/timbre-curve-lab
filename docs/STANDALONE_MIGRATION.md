@@ -109,3 +109,8 @@ The repository currently has no committed automated reference-audio pack. Status
 ## What Not To Migrate
 
 Do not treat HTML IDs, CSS pixels, DOM order, Canvas backing dimensions, browser event names, cache query strings, or GitHub Pages details as product behavior.
+
+## Identity Asset
+
+STANDALONE ASSET: `assets/identity/timbre-app.svg`, matching symbol/micro variants
+and shared palette. This web pilot does not validate native Dock rendering.

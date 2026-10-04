@@ -39,3 +39,8 @@ Documentation must describe current behavior, not desired behavior. Mark unimple
 ## Verification
 
 Scale verification to the change. For audio or interaction work, check initialization, default sample, real audio loading, Play/Stop/natural end/replay, all affected parameters, curve editing, Preview, WAV export, channel count, output length, browser console, syntax, and actual served files. Syntax checks and headers alone do not prove audible correctness.
+
+## Identity Pilot
+
+Use Hub v0.10 canonical Timbre #F4CB38 and retained v0.9 symbol for product identity.
+See `docs/IDENTITY_PILOT.md`; preserve independent effect/parameter colors.

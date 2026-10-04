@@ -2,7 +2,7 @@
 
 Version: 1.0  
 Product: Timbre Curve Lab  
-Brand color: Gold `#F2B705`
+Brand color: Yellow Gold `#F4CB38` (Hub v0.10)
 
 ## Visual Principle
 
@@ -34,8 +34,8 @@ Canvas remains the dominant work area. Decorative effects must never reduce curv
 | Primary text | `--cl-text` | `#e8f0f6` |
 | Secondary text | `--cl-text-secondary` | `#aabccc` |
 | Muted text | `--cl-text-muted` | `#71889b` |
-| Timbre brand | `--cl-accent` | `#f2b705` |
-| Focus | `--cl-focus` | `#f7cb3d` |
+| Timbre brand | `--cl-accent` | `#F4CB38` |
+| Focus | `--cl-focus` | `#F9E49B` |
 | Danger | `--cl-danger` | `#e35d80` |
 
 Geometry uses 4, 6, and 8 px radii; 4, 8, 12, 16, and 24 px spacing; a 38 px general control height; and a 54 px toolbar target height. The font stack is the operating-system UI stack.
@@ -78,3 +78,13 @@ Disabled controls must remain readable but clearly unavailable. Hover is a small
 ## Portability Notes
 
 CSS custom properties are the current web representation. A future native app should preserve their semantic roles, not necessarily their names. Canvas line widths and point sizes should be translated for the target display scale while keeping active/inactive hierarchy and hit areas consistent.
+
+## Hub Identity Pilot — 2026-10-04
+
+`PROJECT-SPECIFIC`: use the pinned Hub v0.10 palette and its preserved Timbre v0.9
+three-layer tapered symbol. Header and favicon copy original symbol/micro SVGs.
+`--cl-accent` aliases `--curve-lab-timbre` from `assets/identity/tokens.css`.
+Focus #F9E49B and hover #F7D972 are web derivatives, not suite brand colors.
+Download WAV uses a dark accent-derived fill to keep light text legible.
+Effect colors, including Delay Time Gold #F2B705, remain independent and unchanged.
+Details and source hashes: `docs/IDENTITY_PILOT.md`, `assets/identity/palette.json`.

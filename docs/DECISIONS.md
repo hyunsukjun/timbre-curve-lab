@@ -124,3 +124,10 @@ This log records decisions that constrain future work. Dates are documentation d
 - Formal listening environments and approval dates for most DSP fine-tuning values are unknown.
 - The preferred behavior when several points overlap within the hit radius is not formally decided.
 - A future preset schema and backward-compatibility policy remain proposed, not implemented.
+
+## D-017: Hub-Aligned Timbre Identity Pilot
+
+2026-10-04 · PROJECT-SPECIFIC. Adopt canonical #F4CB38 and user-selected v0.9
+three-layer tapered icon, pinned through Hub v0.10 assets. Keep Delay and other
+effect colors independent. Local pilot, deployment requires separate instruction.
+See `IDENTITY_PILOT.md`.
