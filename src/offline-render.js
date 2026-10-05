@@ -1,3 +1,4 @@
+import { prepareWavChannels } from "./wav-output.js?v=20261006-48k-01";
 function valueAt(curve, x) {
   if (!curve || curve.length === 0) return 0;
   if (x <= curve[0].x) return curve[0].y;
@@ -412,13 +413,13 @@ export async function renderOffline({ audioBuffer, curves, settings, signal, onP
     }
   }
 
+  const output = await prepareWavChannels(outL, outR, sampleRate, signal);
+  const blob = encodeWav(output.left, output.right, output.sampleRate);
   onProgress?.(1);
   return {
-    left: outL,
-    right: outR,
-    sampleRate,
-    duration: outLength / sampleRate,
-    blob: encodeWav(outL, outR, sampleRate),
+    ...output,
+    duration: output.left.length / output.sampleRate,
+    blob,
     truncated: audioBuffer.duration > maxDuration
   };
 }

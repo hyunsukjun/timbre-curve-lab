@@ -82,3 +82,13 @@ Use `FINE_TUNING_LOG.md` for the dated result. A valid WAV header or successful 
 ## Standalone Acceptance
 
 A native build is not sonically equivalent until it has been compared with the same fixed sources, normalized curves, chain orders, and accepted web reference renders. Differences caused by improved sample-rate conversion or corrected reset behavior must be named and approved rather than hidden inside an implementation rewrite.
+
+## Technical Export Evidence (2026-10-06)
+
+Not a musical listening approval: `tests/browser-wav-output.html` checks 44.1/48/88.2/96k
+60-second synthetic stereo signals, exported WAV re-decode, 1-second source + 100ms
+Delay tail, 30k stopband rejection, channel relationship and cancellation.
+`tests/wav-output.mjs` covers the converter's identity, timing, gain and rejection.
+The family work log retains 18 comparisons to the pre-change renderer, including
+byte-identical 48k results, and a downloaded 10.2s WAV from a 6s source with default
+Delay. Real music, long tails at high feedback, and device listening remain open.

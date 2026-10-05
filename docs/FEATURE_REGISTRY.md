@@ -64,10 +64,10 @@ Status meanings: `IDEA`, `PROPOSED`, `APPROVED`, `IMPLEMENTED`, `VERIFIED`, `DEP
 - **Status:** VERIFIED
 - **Purpose:** Produce a reusable audio result.
 - **Input:** Current source, curves, enabled states, and chain order.
-- **Output:** RIFF/WAVE, PCM format 1, stereo, signed 24-bit little-endian, source sample rate.
-- **Processing:** Offline sample loop with delay tail, safety limiting, and downward-only peak normalization when needed.
+- **Output:** RIFF/WAVE, PCM format 1, stereo, signed 24-bit little-endian, fixed 48 kHz.
+- **Processing:** Offline sample loop with delay tail, safety limiting, downward-only peak normalization, then actual band-limited 48 kHz conversion.
 - **Edge cases:** Source processing capped at 180 seconds; Delay tail capped at 10 seconds; mono is duplicated; channels above two are not retained.
-- **Standalone requirement:** Signed 24-bit PCM with source-rate preservation is the current compatibility baseline.
+- **Standalone requirement:** Signed 24-bit PCM at 48 kHz, preserving processed duration including the intentional Delay tail. Source-rate DSP is retained before conversion.
 
 ## COMMON-006: Clear And Reset
 

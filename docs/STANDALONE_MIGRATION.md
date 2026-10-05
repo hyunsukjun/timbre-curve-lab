@@ -29,7 +29,7 @@ No native framework, plugin format, or implementation language is selected by th
 | Signal chain | DOM drag/drop | Unique enabled modules in user order | Native reorder control | Low | High |
 | Realtime DSP | AudioWorklet | Stereo ordered effects with documented algorithms | Native realtime callback/DSP | High audible drift | High |
 | Offline Render | Main-thread JS module | Same parameter model and DSP, tail, safety | Background render engine | High parity risk | High |
-| WAV export | Blob RIFF encoder | Compatible stereo 24-bit PCM at source rate | Native file writer | Low | High |
+| WAV export | Blob RIFF encoder | Compatible stereo 24-bit PCM at 48 kHz | Native file writer | Low | High |
 | Design system | CSS variables/Canvas paint | Semantic tokens and hierarchy | Native theme tokens | Low | Medium |
 
 ## DSP Reproduction Requirements
@@ -99,11 +99,11 @@ The repository currently has no committed automated reference-audio pack. Status
 
 1. Preview and Render duplicate DSP/mapping code, creating future drift risk.
 2. Formal listening-based fine-tuning history is incomplete.
-3. Current export is 24-bit stereo; fixed-48-kHz conversion is not part of the baseline and would require validated resampling.
+3. Current export is 48 kHz / 24-bit stereo after validated band-limited conversion (D-018). Preserve body plus intentional Delay-tail time.
 4. Browser decoding behavior is not a portable codec specification.
 5. Multichannel sources are reduced to stereo.
 6. The current default noise uses unseeded randomness and cannot reproduce sample-identical test runs.
-7. Preview performs linear source-rate conversion while Render works at source rate; this can affect high-frequency comparison.
+7. Preview performs linear source-rate conversion while Render processes at source rate then band-limits/resamples to 48 kHz; high-frequency Preview/Render comparison remains a separate task.
 8. Current web endpoint points are deletion-protected but can still be moved away from normalized time 0 and 1.
 
 ## What Not To Migrate

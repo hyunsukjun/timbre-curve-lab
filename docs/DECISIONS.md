@@ -80,7 +80,7 @@ This log records decisions that constrain future work. Dates are documentation d
 - **Decision:** Use the shared deep-navy/charcoal design language and Gold `#F2B705` brand identity while preserving semantic parameter colors.
 - **Affects:** Header, controls, Canvas, responsive UI, Standalone visual tokens.
 
-## D-012: Current Export Baseline Is 24-bit PCM
+## D-012: 24-bit PCM Baseline (sample rate superseded by D-018)
 
 - **Date:** 2026-09-29
 - **Previous:** Signed 16-bit stereo PCM at the decoded source sample rate.
@@ -139,3 +139,18 @@ This log records decisions that constrain future work. Dates are documentation d
 three-layer tapered icon, pinned through Hub v0.10 assets. Keep Delay and other
 effect colors independent. Local pilot, deployment requires separate instruction.
 See `IDENTITY_PILOT.md`.
+
+## D-018: Fixed 48 kHz WAV, Preserve Existing Timbre DSP
+
+- **Date:** 2026-10-06
+- **Decision:** Resample completed stereo PCM to 48 kHz with the verified family
+  windowed-sinc converter before 24-bit encoding. Existing 48k results are unchanged.
+- **Previous:** D-012 preserved decoded source rate in the WAV.
+- **Reason:** Adopt the product-family export specification without changing existing
+  source-rate smoothing, filter behavior, LFO or tail calculation as a side effect.
+- **Rejected:** Header-only conversion; input-rate DSP rewrite in this export task.
+- **Trade-off:** Extra CPU/buffers for non-48k output. Cancellation is checked in blocks.
+- **Verification:** 11 browser cases and 18 old/new renderer comparisons pass;
+  actual file export/reopen with Delay retains 6-second body + 4.2-second tail.
+- **Scope:** Local change; publishing requires the user's separate instruction.
+  180-second cap, LFO reset behavior and subjective listening remain separate tasks.

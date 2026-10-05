@@ -102,7 +102,7 @@ Offline Render additionally scales the completed output downward only if measure
 - Stereo input uses channels 1 and 2.
 - Input channels above two are discarded.
 - Offline output is always stereo.
-- Export retains the decoded input sample rate.
+- DSP retains the decoded input sample rate; completed output is band-limited and resampled to 48 kHz before WAV encoding.
 - The generated default sample uses the current AudioContext sample rate, commonly 48 kHz but not guaranteed by the product specification.
 
 ## Preview Output Measurement
@@ -122,7 +122,7 @@ Current encoder:
 - byte rate `sampleRate * 6`
 - interleaved left/right samples
 
-Each channel sample occupies three bytes and maps `-1.0 .. +1.0` to `-8388608 .. 8388607`. Export preserves the decoded source sample rate; it does not relabel or resample every source to 48 kHz.
+Each channel sample occupies three bytes and maps `-1.0 .. +1.0` to `-8388608 .. 8388607`. Export is fixed at 48 kHz. `wav-output.js` converts the completed stereo signal, including Delay tail; it never relabels unconverted PCM. 48 kHz output bypasses conversion unchanged.
 
 ## Preview And Render Parity
 
@@ -177,3 +177,23 @@ Noise values use unseeded `Math.random()`. Each page initialization therefore cr
 - No deterministic automated audio-regression fixture is currently stored in the repository.
 - Unlike-rate Preview uses simple linear source interpolation without a dedicated anti-aliasing resampler.
 - LFO reset/start behavior is not fully deterministic across repeated Preview operations.
+
+## Fixed WAV Conversion — 2026-10-06
+
+The family converter uses a centered 96-tap DC-normalized Blackman-windowed sinc,
+cutoff 0.94 times the lower Nyquist frequency, exact rational phases for common rates
+(up to 1024 phases), endpoint extension, and rounded output frame count. Its centered
+kernel adds no file delay. It yields/checks cancellation every 8192 frames.
+
+Conversion occurs after the existing sample-rate DSP, tail processing and peak
+normalization. Preview, LFO state/reset policy, feedback, filters, effect order,
+smoothing, the 180-second source cap and 10-second Delay-tail cap are unchanged.
+The converter matches Audio's implementation at commit a552b5e; this is a shared
+candidate with a versioned local copy, not an external runtime dependency.
+
+Numerical evidence: 11 browser checks passed (four 60-second rates, four Delay-tail
+cases, 30 kHz rejection, stereo separation, cancellation). Eighteen before/after
+cases cover bypass, each effect and the full chain at 48/96k; all 48k WAVs are
+byte-identical to the previous renderer. Actual 6-second 96k WAV + default Delay
+saved and reopened as 48k/24-bit stereo, 10.2 seconds (6 + 4.2 tail).
+Listening approval and long-file/cross-browser coverage remain unverified.
