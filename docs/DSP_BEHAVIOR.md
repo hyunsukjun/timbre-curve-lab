@@ -197,3 +197,17 @@ cases cover bypass, each effect and the full chain at 48/96k; all 48k WAVs are
 byte-identical to the previous renderer. Actual 6-second 96k WAV + default Delay
 saved and reopened as 48k/24-bit stereo, 10.2 seconds (6 + 4.2 tail).
 Listening approval and long-file/cross-browser coverage remain unverified.
+
+## 2026-10-06 — Reject over-limit export instead of truncating (local, unpublished)
+
+Previously the renderer silently limited the body to 180 seconds and reported capped after downloading. It now raises EXPORT_DURATION_LIMIT before output allocation; the app states that no file was saved and restores the controls. Audio checks estimated output duration after Speed; Timbre checks source duration and preserves the existing Delay tail for accepted files. Exactly 180 seconds remains supported. This is an interim explicit limit, not full long-file support. Preview and DSP inside the supported range are unchanged. Long-file memory/cancellation and full-duration policy remain open.
+
+Validation: actual 180-second render accepted, 181/540 seconds rejected, and Audio 120-second input at Speed 0.5 rejected for its 240-second output. Browser 181-second file produced the explicit message with no console errors.
+
+### Export recovery follow-up — 2026-10-06
+
+Already-aborted or over-limit renders exit before accessing source PCM channels or allocating output arrays. Five cancel/re-render cycles reproduce the same clean WAV. Browser checks with a 180-second file confirm Cancel returns controls; loading a new 6-second file then exports stereo 48k/24-bit/6 seconds. No console warnings/errors observed. Audio labels its existing capped playback timeline “preview limit”; this does not extend playback or export support. Long-file heap/GC behavior and low-memory device testing are still unverified.
+
+### Release boundary verification
+
+Ten 180-second synthetic-render cancellations with explicit Node GC left no additional ArrayBuffer bytes after collection. This is not browser/device memory certification. Audio accepts a 240-second source when 2x Speed produces 120 seconds; Timbre accepts a 180-second source plus its 100ms test Delay tail. Supported-range DSP and Preview remain unchanged.

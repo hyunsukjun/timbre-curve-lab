@@ -148,3 +148,11 @@ Undo/Redo, preset saving, project files, touch-specific gestures, multichannel e
 
 Status: IMPLEMENTED (Timbre identity pilot). Header and favicon use canonical Timbre v0.9
 symbols retained in Hub v0.10. Product color #F4CB38. See `IDENTITY_PILOT.md`.
+
+## 2026-10-06 — Reject over-limit export instead of truncating (local, unpublished)
+
+Previously the renderer silently limited the body to 180 seconds and reported capped after downloading. It now raises EXPORT_DURATION_LIMIT before output allocation; the app states that no file was saved and restores the controls. Audio checks estimated output duration after Speed; Timbre checks source duration and preserves the existing Delay tail for accepted files. Exactly 180 seconds remains supported. This is an interim explicit limit, not full long-file support. Preview and DSP inside the supported range are unchanged. Long-file memory/cancellation and full-duration policy remain open.
+
+Validation: actual 180-second render accepted, 181/540 seconds rejected, and Audio 120-second input at Speed 0.5 rejected for its 240-second output. Browser 181-second file produced the explicit message with no console errors.
+
+Release scope remains explicit export limits, early abort and recovery, not expanded long-file support. Audio limit notices use Speed-derived output time.

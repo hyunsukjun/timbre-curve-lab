@@ -867,7 +867,7 @@ function getSettings() {
 
 async function getOfflineRenderer() {
   if (!renderOffline) {
-    const module = await import("./offline-render.js?v=20261006-48k-01");
+    const module = await import("./offline-render.js?v=20261006-limit-02");
     renderOffline = module.renderOffline;
   }
   return renderOffline;
@@ -1614,7 +1614,7 @@ async function loadAudioFile(file) {
     const longFileNote = buffer.duration > largeFileSeconds ? " - long file" : "";
     fileStatus.textContent = `${file.name} - ${buffer.duration.toFixed(2)} s${longFileNote}`;
     clearDownload();
-    downloadReadout.textContent = buffer.duration > largeFileSeconds ? "export capped" : "ready";
+    downloadReadout.textContent = buffer.duration > largeFileSeconds ? "export limit: 180 s" : "ready";
     playheadSeconds = 0;
     draw();
   } catch (error) {
@@ -1749,6 +1749,8 @@ downloadButton.addEventListener("click", async () => {
   } catch (error) {
     if (error.name === "AbortError") {
       downloadReadout.textContent = "cancelled";
+    } else if (error.code === "EXPORT_DURATION_LIMIT") {
+      downloadReadout.textContent = error.message;
     } else {
       console.error(error);
       downloadReadout.textContent = "export failed";

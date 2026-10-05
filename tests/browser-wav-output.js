@@ -1,4 +1,4 @@
-import {renderOffline} from '../src/offline-render.js?v=20261006-48k-01';
+import {renderOffline} from '../src/offline-render.js?v=20261006-limit-02';
 import {prepareWavChannels} from '../src/wav-output.js?v=20261006-48k-01';
 const flat=y=>[{x:0,y},{x:1,y}];
 const settings={outputGain:.95,chainOrder:[]};

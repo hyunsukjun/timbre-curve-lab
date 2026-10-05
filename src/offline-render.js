@@ -289,11 +289,17 @@ function encodeWav(left, right, sampleRate) {
 }
 
 export async function renderOffline({ audioBuffer, curves, settings, signal, onProgress }) {
+  if (signal?.aborted) throw new DOMException("Render cancelled", "AbortError");
   const sampleRate = audioBuffer.sampleRate;
+  const maxDuration = 180;
+  if (audioBuffer.duration > maxDuration) {
+    const error = new RangeError("Export exceeds 180 s source limit; no file saved.");
+    error.code = "EXPORT_DURATION_LIMIT";
+    throw error;
+  }
   const left = audioBuffer.getChannelData(0);
   const right = audioBuffer.numberOfChannels > 1 ? audioBuffer.getChannelData(1) : left;
-  const maxDuration = 180;
-  const outputDuration = Math.min(audioBuffer.duration, maxDuration);
+  const outputDuration = audioBuffer.duration;
   const sourceLength = Math.max(1, Math.ceil(outputDuration * sampleRate));
   const tailDuration = delayTailSeconds(curves, settings);
   const outLength = sourceLength + Math.round(tailDuration * sampleRate);
