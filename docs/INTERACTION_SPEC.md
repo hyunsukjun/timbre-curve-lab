@@ -85,7 +85,7 @@ Status: `TO BE DOCUMENTED` for a future explicit overlap-selection rule.
 - Play starts or resumes from the current playhead.
 - Stop stops and resets to the beginning.
 - Spacebar toggles Play/Stop when focus is not in editable text.
-- Double-clicking the Canvas seeks to the clicked normalized time.
+- The curve Canvas is reserved for point editing. Seeking uses the separate Output Time waveform.
 - Natural completion returns the playhead to zero and allows immediate replay.
 - Starting a new playback operation invalidates stale transport messages through a playback token.
 
@@ -118,7 +118,9 @@ Stored curve values do not change on resize. The web Canvas recalculates backing
 # Bottom Playback Bar
 
 - The only Play, Stop, and elapsed/total time controls are in the bottom playback bar.
-- Position is normalized from 0 to 1 and maps directly to source seconds for Timbre Curve Lab.
-- Dragging Position updates the clock, Canvas playhead, Worklet read position, and audible continuation point.
-- Stop and natural completion return Position, the clock, and the playhead to zero.
+- Clicking or dragging the Output Time waveform seeks through source seconds. During playback, audio continues from the selected position; when stopped, Play begins there. Arrow keys move one second (Shift: 0.1 second); Home/End jump to the bounds.
+- A solid vertical line with two triangle handles shows the current position in the waveform; an equally bright dashed line previews the pointer position. The dashed guide is hidden during dragging and outside the waveform.
+- The curve Canvas playhead, Output Time line, and bottom clock share the same source-time position. The displayed waveform is original source audio, with one mono lane or separate L/R lanes; it is not a processed-waveform preview.
+- The Output Time strip ends at source duration. Delay tails can sound after the source ends and extend the WAV, but the current AudioWorklet cannot seek into the tail. No extra realtime renderer is created for this visual guide.
+- Stop and natural completion return the clock and both playheads to zero.
 - L/R meters show the final Preview output. CLIP remains lit until its button is pressed.

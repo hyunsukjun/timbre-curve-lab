@@ -3,7 +3,8 @@ import { OutputMeterAnalyzer } from "./output-meter.js?v=20260930-02";
 const fileInput = document.getElementById("fileInput");
 const fileStatus = document.getElementById("fileStatus");
 const timeStatus = document.getElementById("timeStatus");
-const playbackScrubber = document.getElementById("playbackScrubber");
+const outputWaveCanvas = document.getElementById("outputWaveCanvas");
+const outputWaveCtx = outputWaveCanvas.getContext("2d");
 const playButton = document.getElementById("playButton");
 const stopButton = document.getElementById("stopButton");
 const downloadButton = document.getElementById("downloadButton");
@@ -115,6 +116,10 @@ let outputMeter;
 let workletBufferLoaded = false;
 let buffer;
 let waveform = [];
+let outputWaveCssWidth = 1;
+let outputWaveCssHeight = 96;
+let outputHoverProgress = null;
+let isWaveSeeking = false;
 let activeCurve = null;
 let chainOrder = [];
 let draggedChainEffect = null;
@@ -160,7 +165,6 @@ let renderOffline = null;
 let canvasCssWidth = 1;
 let canvasCssHeight = 1;
 let canvasBaseWidth = 0;
-let isScrubbing = false;
 let meterAnimationFrame = 0;
 let meterLastFrameTime = performance.now();
 let meterClipLatched = false;
@@ -487,6 +491,13 @@ function resizeCanvas() {
   const nextHeight = Math.max(1, Math.floor(canvasCssHeight * scale));
   if (canvas.width !== nextWidth) canvas.width = nextWidth;
   if (canvas.height !== nextHeight) canvas.height = nextHeight;
+  const outputRect = outputWaveCanvas.getBoundingClientRect();
+  outputWaveCssWidth = Math.max(1, outputRect.width);
+  outputWaveCssHeight = Math.max(1, outputRect.height);
+  const outputWidth = Math.max(1, Math.floor(outputWaveCssWidth * scale));
+  const outputHeight = Math.max(1, Math.floor(outputWaveCssHeight * scale));
+  if (outputWaveCanvas.width !== outputWidth) outputWaveCanvas.width = outputWidth;
+  if (outputWaveCanvas.height !== outputHeight) outputWaveCanvas.height = outputHeight;
   draw();
 }
 
@@ -779,7 +790,7 @@ function clearDownload() {
 function setTransportBusy(isBusy) {
   playButton.disabled = isBusy || !buffer;
   stopButton.disabled = isBusy || !buffer;
-  playbackScrubber.disabled = isBusy || !buffer;
+  outputWaveCanvas.setAttribute("aria-disabled", String(isBusy || !buffer));
   downloadButton.disabled = isBusy || !buffer;
   fileInput.disabled = isBusy;
 }
@@ -787,7 +798,7 @@ function setTransportBusy(isBusy) {
 function setRenderBusy(isBusy) {
   playButton.disabled = isBusy || !buffer;
   stopButton.disabled = isBusy || !buffer;
-  playbackScrubber.disabled = isBusy || !buffer;
+  outputWaveCanvas.setAttribute("aria-disabled", String(isBusy || !buffer));
   fileInput.disabled = isBusy;
   downloadButton.disabled = !buffer;
 }
@@ -1233,6 +1244,92 @@ function drawCurves() {
   drawCurve(activeCurve, curves[activeCurve], curveColors[activeCurve], 4.8, true);
 }
 
+function drawOutputWaveform() {
+  const w = outputWaveCssWidth;
+  const h = outputWaveCssHeight;
+  const plotW = Math.max(1, w - axisWidth);
+  const scale = window.devicePixelRatio || 1;
+  outputWaveCtx.setTransform(scale, 0, 0, scale, 0, 0);
+  outputWaveCtx.fillStyle = "#0c1f31";
+  outputWaveCtx.fillRect(0, 0, w, h);
+
+  outputWaveCtx.strokeStyle = "rgba(79, 121, 155, 0.28)";
+  outputWaveCtx.lineWidth = 1;
+  const divisions = plotW < 680 ? 4 : 10;
+  for (let i = 0; i <= divisions; i += 1) {
+    const x = axisWidth + (i / divisions) * plotW;
+    outputWaveCtx.beginPath();
+    outputWaveCtx.moveTo(x, 21);
+    outputWaveCtx.lineTo(x, h - 19);
+    outputWaveCtx.stroke();
+  }
+
+  outputWaveCtx.fillStyle = "#9bb4c9";
+  outputWaveCtx.font = "11px sans-serif";
+  outputWaveCtx.textBaseline = "middle";
+  outputWaveCtx.fillText("OUTPUT TIME", 10, 12);
+  const hintX = Math.max(axisWidth + 10, 18 + outputWaveCtx.measureText("OUTPUT TIME").width + 8);
+  outputWaveCtx.fillText(w > 640 ? "SOURCE WAVEFORM · EFFECT TAIL NOT SHOWN" : "SOURCE", hintX, 12);
+
+  if (!buffer || !waveform.length) return;
+  const stereo = waveform.length > 1;
+  const laneCenters = stereo ? [39, 63] : [51];
+  outputWaveCtx.fillStyle = "rgba(146, 171, 190, 0.86)";
+  for (let channel = 0; channel < waveform.length; channel += 1) {
+    const peaks = waveform[channel];
+    const mid = laneCenters[channel];
+    for (let x = 0; x < plotW; x += 1) {
+      const index = Math.min(peaks.length - 1, Math.floor(x / plotW * peaks.length));
+      const amplitude = Math.min(stereo ? 10 : 22, (peaks[index] || 0) * 45);
+      outputWaveCtx.fillRect(axisWidth + x, mid - amplitude, 1, Math.max(1, amplitude * 2));
+    }
+  }
+  outputWaveCtx.fillStyle = "#9bb4c9";
+  outputWaveCtx.fillText(stereo ? "L" : "MONO", 11, laneCenters[0]);
+  if (stereo) outputWaveCtx.fillText("R", 11, laneCenters[1]);
+  for (let i = 0; i <= divisions; i += 1) {
+    outputWaveCtx.textAlign = i === 0 ? "left" : i === divisions ? "right" : "center";
+    outputWaveCtx.fillText(formatTime(buffer.duration * i / divisions), axisWidth + (i / divisions) * plotW, h - 8);
+  }
+  outputWaveCtx.textAlign = "start";
+
+  const markerColor = "#e6edf1";
+  if (!isWaveSeeking && outputHoverProgress !== null) {
+    const hoverX = axisWidth + outputHoverProgress * plotW;
+    outputWaveCtx.save();
+    outputWaveCtx.strokeStyle = markerColor;
+    outputWaveCtx.lineWidth = 1.5;
+    outputWaveCtx.setLineDash([3, 4]);
+    outputWaveCtx.beginPath();
+    outputWaveCtx.moveTo(hoverX, 21);
+    outputWaveCtx.lineTo(hoverX, h - 19);
+    outputWaveCtx.stroke();
+    outputWaveCtx.restore();
+  }
+
+  const progress = Math.max(0, Math.min(1, playheadSeconds / buffer.duration));
+  const cursorX = axisWidth + progress * plotW;
+  outputWaveCtx.strokeStyle = markerColor;
+  outputWaveCtx.lineWidth = 1.5;
+  outputWaveCtx.beginPath();
+  outputWaveCtx.moveTo(cursorX, 21);
+  outputWaveCtx.lineTo(cursorX, h - 19);
+  outputWaveCtx.stroke();
+  outputWaveCtx.fillStyle = markerColor;
+  outputWaveCtx.beginPath();
+  outputWaveCtx.moveTo(cursorX - 5, 21);
+  outputWaveCtx.lineTo(cursorX + 5, 21);
+  outputWaveCtx.lineTo(cursorX, 28);
+  outputWaveCtx.closePath();
+  outputWaveCtx.moveTo(cursorX - 5, h - 19);
+  outputWaveCtx.lineTo(cursorX + 5, h - 19);
+  outputWaveCtx.lineTo(cursorX, h - 26);
+  outputWaveCtx.closePath();
+  outputWaveCtx.fill();
+  outputWaveCanvas.setAttribute("aria-valuenow", String(Math.round(progress * 100)));
+  outputWaveCanvas.setAttribute("aria-valuetext", `${formatClock(playheadSeconds)} of ${formatClock(buffer.duration)}`);
+}
+
 function draw() {
   const scale = window.devicePixelRatio || 1;
   const w = canvasCssWidth;
@@ -1284,21 +1381,6 @@ function draw() {
   else if (["comb", "flanger", "chorus", "delay"].includes(activeEffect)) drawValueAxis();
   else drawLowPassAxis();
 
-  if (waveform.length > 0) {
-    ctx.fillStyle = "rgba(128, 158, 186, 0.48)";
-    const midTop = h * 0.32;
-    const midBottom = h * 0.70;
-    const ampTop = h * 0.24;
-    const ampBottom = h * 0.18;
-    const step = Math.max(1, Math.floor(waveform.length / plotW));
-    for (let x = 0; x < plotW; x += 1) {
-      const sample = waveform[Math.min(waveform.length - 1, x * step)] || 0;
-      const px = axisWidth + x;
-      ctx.fillRect(px, midTop - (sample * ampTop), 1, Math.max(1, sample * ampTop * 2));
-      ctx.fillRect(px, midBottom - (sample * ampBottom), 1, Math.max(1, sample * ampBottom * 2));
-    }
-  }
-
   if (activeEffect && effects[activeEffect].enabled) {
     if (activeEffect === "bandpass") {
       drawBandPassFill();
@@ -1321,9 +1403,7 @@ function draw() {
   }
 
   timeStatus.textContent = buffer ? `${formatClock(playheadSeconds)} / ${formatClock(buffer.duration)}` : "00:00.00 / 00:00.00";
-  if (!isScrubbing) {
-    playbackScrubber.value = buffer?.duration ? String(Math.max(0, Math.min(1, playheadSeconds / buffer.duration))) : "0";
-  }
+  drawOutputWaveform();
   cutoffReadout.textContent = activeEffect && effects[activeEffect].enabled
     ? (
       activeEffect === "comb"
@@ -1339,18 +1419,19 @@ function draw() {
 }
 
 function buildWaveform(audioBuffer) {
-  const channel = audioBuffer.getChannelData(0);
   const buckets = 4000;
-  const samplesPerBucket = Math.max(1, Math.floor(channel.length / buckets));
-  waveform = [];
-  for (let i = 0; i < buckets; i += 1) {
-    let peak = 0;
-    const start = i * samplesPerBucket;
-    for (let j = 0; j < samplesPerBucket; j += 1) {
-      peak = Math.max(peak, Math.abs(channel[start + j] || 0));
+  waveform = Array.from({ length: Math.min(2, audioBuffer.numberOfChannels) }, (_, channelIndex) => {
+    const channel = audioBuffer.getChannelData(channelIndex);
+    const peaks = new Float32Array(buckets);
+    for (let i = 0; i < buckets; i += 1) {
+      let peak = 0;
+      const start = Math.floor(i * channel.length / buckets);
+      const end = Math.floor((i + 1) * channel.length / buckets);
+      for (let j = start; j < end; j += 1) peak = Math.max(peak, Math.abs(channel[j]));
+      peaks[i] = peak;
     }
-    waveform.push(peak);
-  }
+    return peaks;
+  });
 }
 
 function createWhiteNoiseIntervalBuffer(sampleRate) {
@@ -1472,7 +1553,7 @@ async function setupAudio() {
     node.port.onmessage = (event) => {
       if (!isCurrentPlaybackMessage(event.data)) return;
       if (event.data.type === "position") {
-        playheadSeconds = event.data.seconds;
+        if (!isWaveSeeking) playheadSeconds = event.data.seconds;
         currentCutoffs.lowpass = event.data.lowPassCutoff;
         currentCutoffs.highpass = event.data.highPassCutoff;
         currentCutoffs.bandpassCenter = event.data.bandPassCenter;
@@ -1541,6 +1622,9 @@ async function loadAudioFile(file) {
     fileStatus.textContent = "Could not load audio. Try WAV, MP3, or M4A.";
     downloadReadout.textContent = "not ready";
     buffer = null;
+    waveform = [];
+    playheadSeconds = 0;
+    draw();
   } finally {
     setTransportBusy(false);
   }
@@ -1555,31 +1639,65 @@ playButton.addEventListener("click", playAudio);
 
 stopButton.addEventListener("click", stopAudio);
 
-function seekFromScrubber() {
-  if (!buffer) return;
-  const progress = Math.max(0, Math.min(1, Number(playbackScrubber.value) || 0));
-  playheadSeconds = progress * buffer.duration;
+function seekToOutputTime(seconds) {
+  if (!buffer || outputWaveCanvas.getAttribute("aria-disabled") === "true") return;
+  playheadSeconds = Math.max(0, Math.min(buffer.duration, seconds));
   node?.port.postMessage({ type: "seek", seconds: playheadSeconds, token: playbackToken });
   draw();
 }
 
-playbackScrubber.addEventListener("pointerdown", () => {
-  isScrubbing = true;
+function outputProgressFromPointer(event) {
+  const rect = outputWaveCanvas.getBoundingClientRect();
+  return Math.max(0, Math.min(1, (event.clientX - rect.left - axisWidth) / Math.max(1, rect.width - axisWidth)));
+}
+
+outputWaveCanvas.addEventListener("pointerdown", (event) => {
+  if (event.button !== 0 || !buffer || outputWaveCanvas.getAttribute("aria-disabled") === "true") return;
+  event.preventDefault();
+  isWaveSeeking = true;
+  outputHoverProgress = null;
+  outputWaveCanvas.setPointerCapture(event.pointerId);
+  seekToOutputTime(outputProgressFromPointer(event) * buffer.duration);
 });
 
-playbackScrubber.addEventListener("input", seekFromScrubber);
-
-playbackScrubber.addEventListener("change", () => {
-  seekFromScrubber();
-  isScrubbing = false;
+outputWaveCanvas.addEventListener("pointermove", (event) => {
+  if (!buffer) return;
+  if (isWaveSeeking) {
+    seekToOutputTime(outputProgressFromPointer(event) * buffer.duration);
+    return;
+  }
+  const rect = outputWaveCanvas.getBoundingClientRect();
+  const x = event.clientX - rect.left;
+  const y = event.clientY - rect.top;
+  outputHoverProgress = event.pointerType !== "touch" && x >= axisWidth && x <= rect.width && y >= 0 && y <= rect.height
+    ? outputProgressFromPointer(event) : null;
+  drawOutputWaveform();
 });
 
-playbackScrubber.addEventListener("pointerup", () => {
-  isScrubbing = false;
+function endWaveSeek(event) {
+  isWaveSeeking = false;
+  outputHoverProgress = null;
+  if (outputWaveCanvas.hasPointerCapture(event.pointerId)) outputWaveCanvas.releasePointerCapture(event.pointerId);
+  drawOutputWaveform();
+}
+
+outputWaveCanvas.addEventListener("pointerup", endWaveSeek);
+outputWaveCanvas.addEventListener("pointercancel", endWaveSeek);
+outputWaveCanvas.addEventListener("pointerleave", () => {
+  outputHoverProgress = null;
+  drawOutputWaveform();
 });
 
-playbackScrubber.addEventListener("pointercancel", () => {
-  isScrubbing = false;
+outputWaveCanvas.addEventListener("keydown", (event) => {
+  if (!buffer) return;
+  let nextSeconds = playheadSeconds;
+  if (event.key === "ArrowLeft") nextSeconds -= event.shiftKey ? 0.1 : 1;
+  else if (event.key === "ArrowRight") nextSeconds += event.shiftKey ? 0.1 : 1;
+  else if (event.key === "Home") nextSeconds = 0;
+  else if (event.key === "End") nextSeconds = buffer.duration;
+  else return;
+  event.preventDefault();
+  seekToOutputTime(nextSeconds);
 });
 
 meterClipButton.addEventListener("click", () => {
@@ -2037,14 +2155,6 @@ canvas.addEventListener("pointerenter", updateEraseCursor);
 window.addEventListener("keydown", updateEraseCursor);
 window.addEventListener("keyup", updateEraseCursor);
 window.addEventListener("blur", () => updateEraseCursor());
-
-canvas.addEventListener("dblclick", (event) => {
-  if (!buffer) return;
-  const p = pointerToPoint(event);
-  playheadSeconds = p.x * buffer.duration;
-  node?.port.postMessage({ type: "seek", seconds: playheadSeconds, token: playbackToken });
-  draw();
-});
 
 window.addEventListener("resize", resizeCanvas);
 if ("ResizeObserver" in window) {

@@ -92,7 +92,7 @@ This log records decisions that constrain future work. Dates are documentation d
 ## D-013: Playback And Final Output Monitoring Live At The Bottom
 
 - **Date:** 2026-09-30
-- **Decision:** Keep Play, Stop, one clock, source-position seeking, and final stereo output metering in one responsive bottom bar.
+- **Decision:** Keep Play, Stop, one clock, and final stereo output metering in one responsive bottom bar. Source-position seeking moved to the Output Time waveform in D-017.
 - **Reason:** The Canvas remains the main workspace while transport position and audible output can be read together. Measuring after the AudioWorklet reflects the actual Preview result without changing DSP.
 - **Affects:** Header layout, transport interaction, realtime routing observation, responsive design, Standalone migration.
 
@@ -118,6 +118,14 @@ This log records decisions that constrain future work. Dates are documentation d
 - **Decision:** Preserve parameter identity, mappings, curve meaning, chain behavior, and approved sound. Do not automatically preserve linear source-rate conversion, non-deterministic reference noise, asymmetric LFO reset, or main-thread rendering merely because they exist in the web code.
 - **Reason:** These details may affect the current result, but they have not all been approved as musical requirements. They need explicit A/B decisions before native implementation.
 - **Affects:** Reference fixtures, Preview/Render parity, native audio I/O, DSP Core boundaries.
+
+## D-017: Separate The Source Waveform From Curve Editing
+
+- **Date:** 2026-10-05
+- **Decision:** Keep the curve Canvas for parameter editing, and place the mono/L/R source waveform and click/drag seeking in a compact Output Time strip. Remove the redundant bottom Position slider and Canvas double-click seek.
+- **Reason:** Students can locate a sound event without risking a curve edit, while the two time axes remain aligned. The strip shows source peaks because the existing Preview path does not provide a processed waveform and adding a renderer would expand this UI task into DSP work.
+- **Limit:** The seekable clock ends at source duration; a Delay tail may sound beyond it and make the exported WAV longer. The strip labels this explicitly rather than presenting source peaks as rendered output.
+- **Affects:** Transport gestures, Canvas paint, responsive layout, future Standalone waveform semantics. Audio processing and WAV output are unchanged.
 
 ## Unknown Or Pending Rationale
 

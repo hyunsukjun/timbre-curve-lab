@@ -2,7 +2,7 @@
 
 Draw filter color onto sound.
 
-Timbre Curve Lab is a browser-based classroom tool for electronic music and sound composition. Students can load an audio file, draw Low Pass, High Pass, Band Pass, Comb, Flanger, Chorus, and Delay curves over the waveform, then export the filtered result as a WAV file.
+Timbre Curve Lab is a browser-based classroom tool for electronic music and sound composition. Students can load an audio file, draw Low Pass, High Pass, Band Pass, Comb, Flanger, Chorus, and Delay curves over source time, then export the filtered result as a WAV file.
 
 The audio file is processed locally in the student's browser. It is not uploaded to a server.
 
@@ -12,7 +12,7 @@ The audio file is processed locally in the student's browser. It is not uploaded
 2. Click `Open Audio` and choose a short audio file.
 3. Toggle `Low Pass`, `High Pass`, `Band Pass`, `Comb`, `Flanger`, `Chorus`, or `Delay` in the effect chain.
 4. Use the left frequency axis to place cutoff or center-frequency values.
-5. Draw cutoff points directly on the waveform. For Band Pass, use `Center` for the middle frequency and `Width` for the band thickness.
+5. Draw parameter points in the curve editor. For Band Pass, use `Center Frequency` for the middle frequency and `Width` for the band thickness. Click or drag the separate `OUTPUT TIME` source waveform to change playback position; effect tails are not shown there.
 6. Use `Play` for a quick check.
 7. Use `Download WAV` to export the transformed sound.
 8. Use `Clear Current` to reset the curve, or `Reset All` to reset the project.

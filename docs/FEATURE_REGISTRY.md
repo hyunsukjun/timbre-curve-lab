@@ -9,7 +9,7 @@ Status meanings: `IDEA`, `PROPOSED`, `APPROVED`, `IMPLEMENTED`, `VERIFIED`, `DEP
 - **Purpose:** Provide source material without uploading it.
 - **User behavior:** The app starts with an 8-second percussive white-noise sample. `Open Audio` replaces it with a browser-decodable local file.
 - **Input:** Generated stereo sample or local audio file.
-- **Output:** Decoded `AudioBuffer`, waveform summary, duration, and transport readiness.
+- **Output:** Decoded `AudioBuffer`, mono or separate L/R source-waveform summaries, duration, and transport readiness.
 - **Edge cases:** Unsupported files show a short error; files longer than 180 seconds can load, but export is capped.
 - **Web implementation:** `src/app.js`, Web Audio decoding, file input.
 - **Platform-independent requirement:** Source replacement must reset playback safely while preserving local-only processing.
@@ -32,7 +32,8 @@ Status meanings: `IDEA`, `PROPOSED`, `APPROVED`, `IMPLEMENTED`, `VERIFIED`, `DEP
 - **Category:** Common / Preview
 - **Status:** VERIFIED
 - **Purpose:** Audition curve-driven processing in time.
-- **User behavior:** Bottom-bar Play and Stop, Spacebar toggle, Position slider and Canvas double-click seek, moving playhead, natural return to start.
+- **User behavior:** Bottom-bar Play and Stop, Spacebar toggle, click/drag/keyboard seek in the Output Time waveform, moving playhead, natural return to start.
+- **Display contract:** The curve Canvas shows curves and the playhead but no waveform. The Output Time strip shows the original source waveform, not the processed signal; its seekable span is source duration. Delay tails can continue beyond that span and appear only in Preview/Render audio.
 - **Output:** Stereo browser audio.
 - **Dependencies:** Web Audio API and AudioWorklet over localhost/HTTPS.
 - **Standalone requirement:** Stale playback messages must not override the newest transport action.

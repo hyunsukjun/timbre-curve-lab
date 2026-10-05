@@ -24,7 +24,7 @@ No native framework, plugin format, or implementation language is selected by th
 | File loading | Browser file input + `decodeAudioData` | Local decode and source replacement | Native file picker/decoder | Medium codec variance | High |
 | Default sample | Generated AudioBuffer | 8 s percussive broadband-noise source | Native/generated buffer | Low if constants preserved | Medium |
 | Curve editor | Canvas + Pointer Events | Normalized points, tools, endpoint protection | Native drawing/input layer | Medium interaction drift | High |
-| Transport | Bottom bar + AudioWorklet messages | Play, Stop/reset, normalized source seek, natural end, stale-event protection | Native audio transport | High lifecycle risk | High |
+| Transport | Bottom bar, Output Time source-waveform seek + AudioWorklet messages | Play, Stop/reset, normalized source seek, natural end, stale-event protection; do not mistake source peaks for processed output or a seekable delay tail | Native audio transport | High lifecycle risk | High |
 | Output meter | Web Audio analyser after Worklet | Final L/R RMS, peak, hold, latched CLIP and reset; measurement only | Native final-output tap | Low DSP risk, medium UI timing risk | Medium |
 | Signal chain | DOM drag/drop | Unique enabled modules in user order | Native reorder control | Low | High |
 | Realtime DSP | AudioWorklet | Stereo ordered effects with documented algorithms | Native realtime callback/DSP | High audible drift | High |
