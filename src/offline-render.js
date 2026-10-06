@@ -1,5 +1,6 @@
-import { encodeWav } from "./wav-encoder.js?v=20261006-chunk-01";
-import { prepareWavChannels } from "./wav-output.js?v=20261006-48k-01";
+import { exportWav } from "./wav-export.js?v=20261006-stream-01";
+import { encodeWav } from "./wav-encoder.js?v=20261006-stream-01";
+import { prepareWavChannels } from "./wav-output.js?v=20261006-stream-01";
 function valueAt(curve, x) {
   if (!curve || curve.length === 0) return 0;
   if (x <= curve[0].x) return curve[0].y;
@@ -248,7 +249,7 @@ function orderedEffects(settings) {
 }
 
 
-export async function renderOffline({ audioBuffer, curves, settings, signal, onProgress }) {
+export async function renderOffline({ audioBuffer, curves, settings, signal, onProgress, includePCM = true }) {
   if (signal?.aborted) throw new DOMException("Render cancelled", "AbortError");
   const sampleRate = audioBuffer.sampleRate;
   const maxDuration = 180;
@@ -379,6 +380,11 @@ export async function renderOffline({ audioBuffer, curves, settings, signal, onP
     }
   }
 
+  if (!includePCM) {
+    const result = await exportWav(outL, outR, sampleRate, signal);
+    onProgress?.(1);
+    return { ...result, truncated: audioBuffer.duration > maxDuration };
+  }
   const output = await prepareWavChannels(outL, outR, sampleRate, signal);
   const blob = await encodeWav(output.left, output.right, output.sampleRate, signal);
   onProgress?.(1);
