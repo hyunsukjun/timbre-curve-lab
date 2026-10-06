@@ -99,6 +99,8 @@ class TimbreFilterProcessor extends AudioWorkletProcessor {
           this.combRightState.delayMs = 8;
           this.combRightState.index = 0;
         }
+        // Clear disabled effects even while paused or before the next quantum.
+        this.resetInactiveStates(this.orderedEffects());
       } else if (data.type === "play") {
         this.token = data.token ?? this.token;
         if (this.left && this.sourceFrame >= this.left.length) {
@@ -438,11 +440,13 @@ class TimbreFilterProcessor extends AudioWorkletProcessor {
     }
     if (!order.includes("flanger")) {
       this.resetDelayState(this.flangerLeftState, 3);
+      this.flangerLeftState.phase = 0;
       this.resetDelayState(this.flangerRightState, 3);
       this.flangerRightState.phase = 0.25;
     }
     if (!order.includes("chorus")) {
       this.resetDelayState(this.chorusLeftState, 18);
+      this.chorusLeftState.phase = 0;
       this.resetDelayState(this.chorusRightState, 18);
       this.chorusRightState.phase = 0.5;
     }
