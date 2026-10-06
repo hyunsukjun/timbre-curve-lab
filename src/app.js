@@ -1540,7 +1540,7 @@ async function setupAudio() {
     throw new Error("AudioWorklet is not available. Use a current Chrome, Edge, or Safari version over HTTPS.");
   }
 
-    await audioContext.audioWorklet.addModule("src/timbre-worklet.js?v=20260930-02");
+    await audioContext.audioWorklet.addModule("src/timbre-worklet.js?v=20261006-phase-02");
     node = new AudioWorkletNode(audioContext, "timbre-filter-processor", {
       numberOfInputs: 0,
       numberOfOutputs: 1,

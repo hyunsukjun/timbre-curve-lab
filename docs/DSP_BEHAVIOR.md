@@ -140,7 +140,7 @@ Each channel sample occupies three bytes and maps `-1.0 .. +1.0` to `-8388608 ..
 | Cutoff mapping sample rate | Uses AudioContext sample rate | Uses decoded source sample rate | Medium; maximum cutoff can differ for low-rate sources |
 | Source boundary | Stops linear reads three source frames before the buffer end | Processes the complete capped source length | Very low duration difference; boundary transient requires verification |
 | Channel layout | Stereo | Stereo | Low |
-| LFO start/reset | Stateful Worklet phases; right phase is assigned 0.25/0.5 on reset while the left phase is not always forced to zero | Fresh deterministic 0/0.25 and 0/0.5 phases per render | Medium; repeated Preview may start at a different sweep position |
+| LFO start/reset | Full transport/filter reset restores Flanger 0/0.25 and Chorus 0/0.5 phases | Fresh deterministic 0/0.25 and 0/0.5 phases per render | Transport reset deterministic in current tested cases; effect bypass/re-enable and whole-tail parity remain separate |
 | Initial delay target | 8 ms Comb, 3 ms Flanger, 18 ms Chorus, 350 ms Delay, then smoothing | Same initial values | Low parity risk, but startup color differs from current UI defaults |
 
 The duplicate calculation code is a known structural risk. AudioWorklet module isolation explains separate files but does not remove the need for synchronized tests or a future shared pure-DSP module.
@@ -149,7 +149,7 @@ The UI frequency axis is fixed at 40 Hz-18 kHz. Preview clamps its mapping again
 
 ## Initialization And Reset
 
-Filter integrator states, delay buffers, and delay targets are reset when buffers/state require it or effects leave the active chain. Transport uses tokens to reject stale stop/end messages. Current LFO reset behavior is asymmetric: the right Flanger/Chorus phase is assigned 0.25/0.5, while an existing left phase is not always forced back to zero. This is current web behavior, not a recommended standalone contract.
+Filter integrator states, delay buffers, and delay targets are reset when buffers/state require it or effects leave the active chain. Transport uses tokens to reject stale stop/end messages. Full reset now explicitly sets left Flanger/Chorus phase to zero and retains right 0.25/0.5 offsets. Previously left phases could survive this reset; that asymmetry was reproduced and fixed.
 
 Only the Delay module determines the explicit post-source tail duration. Comb and Flanger feedback do not independently extend playback. If Delay is active, the entire chain continues processing zeros during the calculated Delay tail.
 
@@ -176,7 +176,7 @@ Noise values use unseeded `Math.random()`. Each page initialization therefore cr
 - Preview and Render share a specification but not one source module.
 - No deterministic automated audio-regression fixture is currently stored in the repository.
 - Unlike-rate Preview uses simple linear source interpolation without a dedicated anti-aliasing resampler.
-- LFO reset/start behavior is not fully deterministic across repeated Preview operations.
+- Full transport reset is now deterministic in the transport regression fixture; bypass/re-enable and full-tail parity remain to be verified.
 
 ## Fixed WAV Conversion — 2026-10-06
 
@@ -227,3 +227,17 @@ COMMON CANDIDATE: browser Download WAV requests includePCM:false. After unchange
 Cancellation is checked through conversion, append and finalization, including after the final block yield. The writer rejects incomplete output. Source-rate output and Blob payload still occupy memory; this is not streaming the DSP itself. The 180-second policy and Preview stay unchanged. Native migration should preserve this file contract without requiring the web Blob implementation.
 
 Validation: frozen pre-change conversion/PCM24 oracle, 32 cases per Lab across 32/44.1/48/88.2/96 kHz, block edges, cancellation/recovery and renderer parity (Timbre Delay tail included). Existing regression suites pass. Nine-minute stereo 96k QA-only profiles preserve WAV duration and marker regions; Node memory measurements do not certify browser/low-memory behavior or listening quality.
+
+
+## Deterministic transport LFO reset — 2026-10-06
+
+Full reset explicitly restores left Flanger/Chorus phase to 0; right offsets remain 0.25/0.5. This affects Stop(reset), seek, buffer replacement and natural-end restart paths that call resetFilter. Pausing without reset and bypass/re-enable policy are not changed. It fixes history-dependent Preview restarts without changing fresh Render, modulation ranges or tone tuning. Seek starts cleared state at the destination; it does not reconstruct the effect history from the start of the file.
+
+Validation: tests/transport-parity.mjs executes the actual Worklet class in a Node mock at 48k, 128-frame blocks. Ten effect orders compare left-channel first-half PCM for repeated Stop/Play, used-vs-fresh seek, and initial Preview versus Render. All tested differences are zero after the fix. Real browser Flanger+Chorus play, seek, Stop and replay passed with no console warnings/errors. Right-channel full numerical parity, natural-end replay, full tails, high feedback and cross-rate Preview comparisons remain separate verification targets.
+
+
+### Final transport and endpoint verification — 2026-10-06
+
+Preview now uses the full source frame count for end/replay/seek bounds. Linear reading holds the final sample for fractional positions in the last frame and returns zero beyond the buffer. Previously Preview stopped three frames early; this truncated the last effect samples and ended tails early. Render processing is unchanged.
+
+transport-tail.mjs adds 13 stereo cases including individual modulation effects, Delay at normalized feedback 0 and 1 (actual 0/0.85), Chorus/Delay in both orders, and full/reversed chains. At 48k with a low-level 0.25-second fixture ending in nonzero PCM: full Preview/Render output including tail matches exactly, Stop/Play and seek history checks pass for both channels, one ended event is emitted, post-end output is silent, and natural replay reproduces initial PCM. This supersedes the earlier pending status for these specific cases. Extreme gain, other rates, all curve shapes and listening remain outside this claim.

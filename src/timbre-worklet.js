@@ -101,7 +101,7 @@ class TimbreFilterProcessor extends AudioWorkletProcessor {
         }
       } else if (data.type === "play") {
         this.token = data.token ?? this.token;
-        if (this.left && this.sourceFrame >= this.left.length - 3) {
+        if (this.left && this.sourceFrame >= this.left.length) {
           this.sourceFrame = 0;
           this.resetFilter();
         }
@@ -121,7 +121,7 @@ class TimbreFilterProcessor extends AudioWorkletProcessor {
       } else if (data.type === "seek") {
         this.token = data.token ?? this.token;
         if (this.left) {
-          this.sourceFrame = Math.max(0, Math.min(this.left.length - 3, (data.seconds || 0) * this.sampleRateSource));
+          this.sourceFrame = Math.max(0, Math.min(this.left.length, (data.seconds || 0) * this.sampleRateSource));
         }
         this.tailFramesRemaining = 0;
         this.resetFilter();
@@ -152,9 +152,11 @@ class TimbreFilterProcessor extends AudioWorkletProcessor {
     this.combRightState.delayMs = 8;
     this.combRightState.index = 0;
     this.resetDelayState(this.flangerLeftState, 3);
+    this.flangerLeftState.phase = 0;
     this.resetDelayState(this.flangerRightState, 3);
     this.flangerRightState.phase = 0.25;
     this.resetDelayState(this.chorusLeftState, 18);
+    this.chorusLeftState.phase = 0;
     this.resetDelayState(this.chorusRightState, 18);
     this.chorusRightState.phase = 0.5;
     this.resetDelayState(this.delayLeftState, 350);
@@ -186,11 +188,11 @@ class TimbreFilterProcessor extends AudioWorkletProcessor {
 
   read(buffer, pos) {
     if (!buffer || buffer.length === 0) return 0;
-    if (pos < 0 || pos >= buffer.length - 3) return 0;
+    if (pos < 0 || pos >= buffer.length) return 0;
     const i0 = Math.floor(pos);
     const frac = pos - i0;
     const x0 = buffer[i0];
-    const x1 = buffer[i0 + 1];
+    const x1 = buffer[Math.min(i0 + 1, buffer.length - 1)];
     return x0 + ((x1 - x0) * frac);
   }
 
@@ -470,7 +472,7 @@ class TimbreFilterProcessor extends AudioWorkletProcessor {
       let r = 0;
 
       if (this.left && this.settings.playing) {
-        const sourceEndFrame = Math.max(0, this.left.length - 3);
+        const sourceEndFrame = this.left.length;
         const sourceIsActive = this.sourceFrame < sourceEndFrame;
         const norm = sourceIsActive && this.left.length > 1
           ? Math.min(1, this.sourceFrame / (this.left.length - 1))
