@@ -873,7 +873,7 @@ async function getOfflineRenderer() {
   return renderOffline;
 }
 
-async function ensureAudioContext() {
+async function ensureAudioContext({ resume = true } = {}) {
   if (!audioContext) {
     const AudioContextClass = window.AudioContext || window.webkitAudioContext;
     if (!AudioContextClass) {
@@ -881,7 +881,7 @@ async function ensureAudioContext() {
     }
     audioContext = new AudioContextClass();
   }
-  if (audioContext.state !== "running") await audioContext.resume();
+  if (resume && audioContext.state !== "running") await audioContext.resume();
 }
 
 function sendBufferToWorklet() {
@@ -1605,7 +1605,8 @@ async function loadAudioFile(file) {
   isPlaying = false;
   node?.port.postMessage({ type: "stop", reset: true, token: nextPlaybackToken() });
   try {
-    await ensureAudioContext();
+    // Decoding must not wait for Safari playback permission after the file chooser.
+    await ensureAudioContext({ resume: false });
     const data = await file.arrayBuffer();
     buffer = await decodeAudioFile(data);
     buildWaveform(buffer);
