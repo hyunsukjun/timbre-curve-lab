@@ -219,3 +219,8 @@ COMMON CANDIDATE: transport shortcuts must respect the same availability as Play
 ## 2026-10-07 — Import before playback in Safari
 
 File import creates the decoding context without awaiting `AudioContext.resume()`. Playback still requests activation through the default context path. This prevents a pending Safari playback permission request from blocking file decoding after the file chooser closes. Existing decoding, channel policy, curves, DSP and export format remain unchanged. Regression: `tests/import-suspended-context.mjs` exercises suspended context, decode failure/retry and playback activation (plus Spectral channel/rate policy). Standalone implementations should likewise keep file decoding independent of output-device activation.
+
+
+## 2026-10-08 — Release export on source replacement
+
+An actual replacement file selection revokes the previous WAV URL before decode, including when decode fails. Cancelling the chooser (no file) preserves the current source/result. The existing failed-import policy still clears the source and disables transport/export; valid retry restores readiness. DSP and output format are unchanged. Regression: tests/file-replacement-export.mjs; failed before the fix, passed after. Standalone should likewise release obsolete export resources when invalidating a source.

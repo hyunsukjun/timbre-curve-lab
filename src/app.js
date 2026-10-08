@@ -1594,6 +1594,7 @@ async function setupAudio() {
 
 async function loadAudioFile(file) {
   if (!file) return;
+  clearDownload();
   if (renderAbortController) {
     renderAbortController.abort();
     renderAbortController = null;
