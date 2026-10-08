@@ -186,3 +186,10 @@ File import creates the decoding context without awaiting `AudioContext.resume()
 ## 2026-10-08 — Release export on source replacement
 
 An actual replacement file selection revokes the previous WAV URL before decode, including when decode fails. Cancelling the chooser (no file) preserves the current source/result. The existing failed-import policy still clears the source and disables transport/export; valid retry restores readiness. DSP and output format are unchanged. Regression: tests/file-replacement-export.mjs; failed before the fix, passed after. Standalone should likewise release obsolete export resources when invalidating a source.
+
+
+## 2026-10-08 — Cancel pending first playback
+
+Stop and actual source replacement invalidate a pending Play even before the AudioWorklet node exists. Stop now advances the playback token unconditionally, and Play checks the captured token after asynchronous engine preparation. Forced Stop follows the same rule where present. Explicit Play after cancellation remains available. No-file chooser cancellation and each Lab's existing failed-import policy are preserved. DSP, curve semantics, and export format are unchanged.
+
+Regression: tests/initial-play-cancel.mjs invokes actual application handlers with delayed engine preparation. Old code failed the Stop case; corrected code passes Stop, forced Stop where present, successful source replacement, and explicit retry. This proves request cancellation, not cold-start speed or physical audio onset. Standalone should preserve the same invalidation rule across asynchronous engine setup.

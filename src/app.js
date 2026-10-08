@@ -815,9 +815,10 @@ function isCurrentPlaybackMessage(data) {
 async function playAudio() {
   if (!buffer) return;
   if (isPlaying) return;
+  const requestToken = playbackToken;
   try {
     await ensureAudio();
-    if (isPlaying) return;
+    if (isPlaying || requestToken !== playbackToken || !buffer || playButton.disabled) return;
     node.port.postMessage({ type: "seek", seconds: playheadSeconds, token: playbackToken });
     node.port.postMessage({ type: "play", token: nextPlaybackToken() });
     isPlaying = true;
@@ -830,7 +831,8 @@ async function playAudio() {
 
 function stopAudio() {
   if (!buffer) return;
-  node?.port.postMessage({ type: "stop", reset: true, token: nextPlaybackToken() });
+  const stopToken = nextPlaybackToken();
+  node?.port.postMessage({ type: "stop", reset: true, token: stopToken });
   isPlaying = false;
   playheadSeconds = 0;
   playButton.textContent = "Play";
@@ -839,7 +841,8 @@ function stopAudio() {
 
 function forceStopAudio() {
   if (!buffer) return;
-  node?.port.postMessage({ type: "stop", reset: true, token: nextPlaybackToken() });
+  const stopToken = nextPlaybackToken();
+  node?.port.postMessage({ type: "stop", reset: true, token: stopToken });
   isPlaying = false;
   playheadSeconds = 0;
   playButton.textContent = "Play";
@@ -1604,7 +1607,8 @@ async function loadAudioFile(file) {
   downloadReadout.textContent = "loading";
   playButton.textContent = "Play";
   isPlaying = false;
-  node?.port.postMessage({ type: "stop", reset: true, token: nextPlaybackToken() });
+  const stopToken = nextPlaybackToken();
+  node?.port.postMessage({ type: "stop", reset: true, token: stopToken });
   try {
     // Decoding must not wait for Safari playback permission after the file chooser.
     await ensureAudioContext({ resume: false });
