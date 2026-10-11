@@ -1,3 +1,4 @@
+import { readAudioFile } from "./audio-import.js?v=20261011-aiff1";
 import { OutputMeterAnalyzer } from "./output-meter.js?v=20260930-02";
 
 const fileInput = document.getElementById("fileInput");
@@ -1612,7 +1613,7 @@ async function loadAudioFile(file) {
   try {
     // Decoding must not wait for Safari playback permission after the file chooser.
     await ensureAudioContext({ resume: false });
-    const data = await file.arrayBuffer();
+    const data = await readAudioFile(file, audioContext.sampleRate);
     buffer = await decodeAudioFile(data);
     buildWaveform(buffer);
     workletBufferLoaded = false;
@@ -1625,7 +1626,7 @@ async function loadAudioFile(file) {
     draw();
   } catch (error) {
     console.error(error);
-    fileStatus.textContent = "Could not load audio. Try WAV, MP3, or M4A.";
+    fileStatus.textContent = error.message?.startsWith("AIFF:") ? error.message : "Could not load audio. Try WAV, MP3, or M4A.";
     downloadReadout.textContent = "not ready";
     buffer = null;
     waveform = [];

@@ -259,3 +259,11 @@ paused-toggle.mjs checks seven effects in active/paused conditions (14 cases), u
 ## 2026-10-06: Chain state and gain boundary verification
 
 `tests/chain-gain.mjs` passes six reorder cases (three chains, playing/internal pause): reversing then restoring order before processing preserves the next 4096 stereo frames exactly. Processing reversed orders remains finite. Six 48k dry-tone amplitude cases confirm Preview/Render equality below final normalization and the documented Render-only scale above it (peak 0.995 to 0.98, -0.13194 dB; scale-adjusted error < 3.2e-8). No gain/limiter policy was changed. These are engine measurements, not reorder-click listening, all-permutation coverage, or device performance certification. The local bypass/reset fix is ready for a scoped commit and deployment; neither was performed in this step.
+
+
+## AIFF input compatibility (2026-10-11)
+
+See [AIFF import contract](AIFF_IMPORT.md): local PCM AIFF 16/24-bit mono/stereo
+normalization into PCM WAV before the established decoder. Existing DSP,
+resampling and Lab-specific channel policies are preserved. Browser and memory
+verification limits are recorded there.

@@ -112,3 +112,10 @@ The following files preserve product behavior separately from the current web pl
 - Chrome, Edge, and Safari are the first browsers to test.
 - If the browser slows down, reload the page and use a shorter file.
 - Downloaded WAV files are created by the browser and can be imported into a DAW.
+
+
+### Portable AIFF input
+
+AIFF (.aif/.aiff), mono/stereo 16/24-bit PCM, is converted locally on import.
+AIFF-C is not supported by this importer; use PCM WAV instead. Original files
+are unchanged. See [support scope and limits](docs/AIFF_IMPORT.md).
