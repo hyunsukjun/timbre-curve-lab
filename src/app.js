@@ -1,3 +1,4 @@
+import {mountTransport} from "./common-transport.js?v=20261013-1";
 import { readAudioFile } from "./audio-import.js?v=20261011-aiff1";
 import { OutputMeterAnalyzer } from "./output-meter.js?v=20260930-02";
 
@@ -547,9 +548,10 @@ function updateMeterDisplay(now) {
     }
 
     if (measured.clipped) meterClipLatched = true;
-    row.querySelector(".meterRms").style.transform = `scaleX(${meterPosition(display.rms)})`;
-    row.querySelector(".meterPeak").style.transform = `scaleX(${meterPosition(display.peak)})`;
+    row.querySelector(".meterRms").style.clipPath = `inset(0 ${(1-meterPosition(display.rms))*100}% 0 0)`;
+    row.querySelector(".meterPeak").style.clipPath = `inset(0 ${(1-meterPosition(display.peak))*100}% 0 0)`;
     row.querySelector(".meterHold").style.left = `${meterPosition(display.hold) * 100}%`;
+    row.querySelector(".meterHold").style.opacity = display.hold > 0.001 ? "1" : "0";
     const peakDb = linearToDb(display.peak);
     row.querySelector(".meterValue").textContent = Number.isFinite(peakDb) ? peakDb.toFixed(1) : "-∞";
   });
@@ -851,7 +853,7 @@ function forceStopAudio() {
 }
 
 function toggleAudio() {
-  if (isPlaying) stopAudio();
+  if (isPlaying) pauseAudio();
   else playAudio();
 }
 
@@ -1587,7 +1589,7 @@ async function setupAudio() {
       } else if (event.data.type === "stopped") {
         playButton.textContent = "Play";
         isPlaying = false;
-        playheadSeconds = 0;
+        playheadSeconds = event.data.seconds || 0;
         draw();
       }
     };
@@ -1644,12 +1646,12 @@ fileInput.addEventListener("change", async () => {
 
 playButton.addEventListener("click", playAudio);
 
-stopButton.addEventListener("click", stopAudio);
+stopButton.addEventListener("click", pauseAudio);
 
 function seekToOutputTime(seconds) {
   if (!buffer || outputWaveCanvas.getAttribute("aria-disabled") === "true") return;
   playheadSeconds = Math.max(0, Math.min(buffer.duration, seconds));
-  node?.port.postMessage({ type: "seek", seconds: playheadSeconds, token: playbackToken });
+  node?.port.postMessage({ type: "seek", seconds: playheadSeconds, token: nextPlaybackToken() });
   draw();
 }
 
@@ -2195,3 +2197,12 @@ window.addEventListener("keyup", (event) => {
 
 resizeCanvas();
 loadDefaultWhiteNoise();
+
+function pauseAudio() {
+  if (!buffer) return;
+  node?.port.postMessage({type:"stop",reset:false,token:nextPlaybackToken()});
+  if (!node) nextPlaybackToken();
+  isPlaying=false;playButton.textContent="Play";draw();
+}
+
+mountTransport({state:()=>({duration:buffer?.duration||0,seconds:playheadSeconds,playing:isPlaying,disabled:playButton.disabled}),seek:p=>seekToOutputTime(p*(buffer?.duration||0))});
