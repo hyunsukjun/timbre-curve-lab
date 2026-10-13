@@ -1004,3 +1004,26 @@ button:disabled {
     transition: none;
   }
 }
+
+/* Laptop/desktop workspace: let the curve absorb changing control rows. */
+@media (min-width: 900px) and (min-height: 650px) {
+  .app {
+    display: flex;
+    flex-direction: column;
+    height: 100dvh;
+    min-height: 0;
+    padding-bottom: env(safe-area-inset-bottom, 0px) !important;
+  }
+  .topbar { flex: 0 0 auto; padding: 12px 20px; }
+  .editor { display: flex; flex-direction: column; flex: 1 1 0; gap: 8px; padding: 10px 16px; }
+  .editor > * { flex: 0 0 auto; }
+  .editor > .canvasFrame { flex: 1 1 0; min-height: 120px; position: relative; }
+  #waveCanvas, .parameterBar:not([hidden]) ~ .canvasFrame #waveCanvas {
+    position: absolute; inset: 0; height: 100% !important;
+  }
+  #outputWaveCanvas { height: 96px; }
+  .chainDiagram { flex-wrap: nowrap; min-height: 48px; }
+  .app > .playbackBar {
+    position: static; flex: 0 0 auto; margin: 0 16px 10px;
+  }
+}

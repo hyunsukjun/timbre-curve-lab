@@ -249,3 +249,10 @@ minus the minimum read delay (.25 ms / 5 ms). They no longer clip the bottom
 of the LFO sweep for excessive Depth. Requested values and defaults remain;
 limited values show requested → effective depth in the readout.
 [Contract, compatibility and verification](MODULATION_DEPTH_2026-10-13.md).
+
+
+## 2026-10-14 — Viewport-fitting desktop workspace
+
+At viewport width >=900px and height >=650px, the app uses the available viewport height. The curve frame flexes as parameter controls appear, Signal Chain remains a single horizontally scrollable row, and transport participates in the layout instead of requiring a large fixed-footer spacer. Source waveform retains 96px height. Smaller windows retain scrolling for access rather than hiding controls. DSP, parameter IDs, curves, and chain ordering are unchanged.
+
+Browser verification at 1422x800, all seven effects enabled and Delay parameters visible: document height 800px (previously 903px), transport bottom 790px, curve height about237px, no console errors. Other viewport sizes and Safari remain unverified; requested viewport override did not change the measured viewport. Local only, not committed/deployed.
