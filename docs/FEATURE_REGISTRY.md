@@ -257,3 +257,29 @@ Oscillator retains its existing source-duration seek cap for convolution tails.
 Verification covers syntax, keyboard contracts and browser layout; file-based
 Labs also exercised silent-WAV pause/resume. Audible listening, Safari/Windows,
 long-file performance and Oscillator mode-specific listening remain separate QA.
+
+## Character starts and Flanger MIX — 2026-10-13
+PROJECT-SPECIFIC: seven effect starting curves updated and `flangerMix` (0–1,
+default 0.5) exposed with the existing curve editing, display, reset and transport
+paths. Preview and Render both blend dry/delayed signals; legacy missing MIX
+retains 0.54. Effects still start Off and edited curves survive toggling.
+No damping, limiter, source-time or feedback algorithm changes.
+[Values, rationale, sources and verification boundaries](CHARACTER_PRESETS_2026-10-13.md).
+
+## Band Pass Width correction — 2026-10-13
+Width now spans narrow-to-wide filtering, with unity center gain and no hidden
+full-width bypass. UI shows percentage and Q. This deliberately changes old
+Band Pass output; listening approval remains pending.
+[Contract, compatibility and measurements](BANDPASS_WIDTH_2026-10-13.md).
+
+## Comb Amount — 2026-10-13
+Comb Mix is now labeled Amount, meaning original-to-comb-result blend.
+Stable ID `combMix`, default 85%, engine and gestures are unchanged.
+[Contract and rationale](COMB_AMOUNT_2026-10-13.md).
+
+## Delay / Depth limits — 2026-10-13
+Flanger and Chorus now limit the effective sine amplitude to the smoothed Delay
+minus the minimum read delay (.25 ms / 5 ms). They no longer clip the bottom
+of the LFO sweep for excessive Depth. Requested values and defaults remain;
+limited values show requested → effective depth in the readout.
+[Contract, compatibility and verification](MODULATION_DEPTH_2026-10-13.md).

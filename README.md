@@ -25,8 +25,8 @@ Timbre Curve Lab helps students treat sound as flexible compositional material:
 - Low Pass can brighten or darken the sound over time by changing the cutoff frequency.
 - High Pass can thin or lighten the sound by removing low frequencies over time.
 - Band Pass can isolate a moving frequency region with separate center-frequency and width curves.
-- Comb can create metallic resonance, short echo color, and pitched delay effects with delay time, feedback, and mix curves.
-- Flanger can create moving comb-filter sweeps with short delay, depth, rate, and feedback curves.
+- Comb can create metallic resonance, short echo color, and pitched delay effects with delay time, feedback, and amount curves.
+- Flanger can create moving comb-filter sweeps with short delay, depth, rate, feedback, and mix curves.
 - Chorus can create wider, thicker doubled sounds with delay, depth, rate, and mix curves.
 - Delay can create clear echoes from 100 ms to 1.5 seconds with feedback and mix curves.
 - The effect chain uses one slot each for Low Pass, High Pass, Band Pass, Comb, Flanger, Chorus, and Delay.
@@ -125,3 +125,16 @@ are unchanged. See [support scope and limits](docs/AIFF_IMPORT.md).
 Bottom controls are Return to start / Play / Pause. Space toggles Play/Pause.
 Pause keeps the current position; Return to start seeks to zero. The thin slider
 navigates output time. Source guides, sound engines and export policies are unchanged.
+
+## Effect starting presets
+Each effect has a character-oriented starting setting; all effects still start Off.
+Flanger now includes an editable 0–100% Mix curve (default 50%).
+See [starting values and research](docs/CHARACTER_PRESETS_2026-10-13.md).
+
+Band Pass Width adjusts bandwidth continuously, including at 100%; it no longer
+switches to bypass. Center-frequency gain is unity. Width readout includes Q.
+See [Band Pass correction](docs/BANDPASS_WIDTH_2026-10-13.md).
+
+Flanger/Chorus Depth is a requested sweep amplitude. Small Delay values limit
+the effective depth to keep a smooth symmetric sweep; the readout shows the
+effective value when limited. [Details](docs/MODULATION_DEPTH_2026-10-13.md).

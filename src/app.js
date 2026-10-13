@@ -37,6 +37,7 @@ const flangerDelayParam = document.getElementById("flangerDelayParam");
 const flangerDepthParam = document.getElementById("flangerDepthParam");
 const flangerRateParam = document.getElementById("flangerRateParam");
 const flangerFeedbackParam = document.getElementById("flangerFeedbackParam");
+const flangerMixParam = document.getElementById("flangerMixParam");
 const chorusDelayParam = document.getElementById("chorusDelayParam");
 const chorusDepthParam = document.getElementById("chorusDepthParam");
 const chorusRateParam = document.getElementById("chorusRateParam");
@@ -78,6 +79,7 @@ const curveColors = {
   flangerDepth: "#b887f4",
   flangerRate: "#eb6f75",
   flangerFeedback: "#8fcf7a",
+  flangerMix: "#6fa8dc",
   chorusDelay: "#f2b705",
   chorusDepth: "#b887f4",
   chorusRate: "#8fcf7a",
@@ -146,7 +148,8 @@ const currentFlanger = {
   delayMs: 2,
   depthMs: 6,
   rateHz: 0.3,
-  feedback: 0.65
+  feedback: 0.6,
+  mix: 0.5
 };
 const currentChorus = {
   delayMs: 22,
@@ -181,24 +184,25 @@ const canvasBaseHeight = 620;
 const axisWidth = 62;
 const minCutoffHz = 40;
 const maxCutoffHz = 18000;
-const defaultCutoffY = 0.53;
-const defaultHighPassY = 0.38;
-const defaultBandPassCenterY = 0.56;
-const defaultBandPassWidthY = 0;
-const defaultCombDelayY = 0.523296;
-const defaultCombFeedbackY = 0.842105;
-const defaultCombMixY = 0.9;
-const defaultFlangerDelayY = 0.462756;
-const defaultFlangerDepthY = 0.6;
-const defaultFlangerRateY = 0.490459;
-const defaultFlangerFeedbackY = 0.764706;
+const defaultCutoffY = 0.490360266624;
+const defaultHighPassY = 0.509639733376;
+const defaultBandPassCenterY = 0.593254878588;
+const defaultBandPassWidthY = 0.436208583971;
+const defaultCombDelayY = 0.392472061943;
+const defaultCombFeedbackY = 0.757894736842;
+const defaultCombMixY = 0.85;
+const defaultFlangerDelayY = 0.598104004502;
+const defaultFlangerDepthY = 0.25;
+const defaultFlangerRateY = 0.457438471789;
+const defaultFlangerMixY = 0.5;
+const defaultFlangerFeedbackY = 0.705882352941;
 const defaultChorusDelayY = 0.48;
-const defaultChorusDepthY = 0.5;
-const defaultChorusRateY = 0.69477;
-const defaultChorusMixY = 0.55;
-const defaultDelayTimeY = 0.228571;
-const defaultDelayFeedbackY = 0.564706;
-const defaultDelayMixY = 0.42;
+const defaultChorusDepthY = 0.2;
+const defaultChorusRateY = 0.736209929;
+const defaultChorusMixY = 0.5;
+const defaultDelayTimeY = 0.157142857143;
+const defaultDelayFeedbackY = 0.529411764706;
+const defaultDelayMixY = 0.4;
 
 const curves = {
   lowpass: [{ x: 0, y: defaultCutoffY }, { x: 1, y: defaultCutoffY }],
@@ -212,6 +216,7 @@ const curves = {
   flangerDepth: [{ x: 0, y: defaultFlangerDepthY }, { x: 1, y: defaultFlangerDepthY }],
   flangerRate: [{ x: 0, y: defaultFlangerRateY }, { x: 1, y: defaultFlangerRateY }],
   flangerFeedback: [{ x: 0, y: defaultFlangerFeedbackY }, { x: 1, y: defaultFlangerFeedbackY }],
+  flangerMix: [{ x: 0, y: defaultFlangerMixY }, { x: 1, y: defaultFlangerMixY }],
   chorusDelay: [{ x: 0, y: defaultChorusDelayY }, { x: 1, y: defaultChorusDelayY }],
   chorusDepth: [{ x: 0, y: defaultChorusDepthY }, { x: 1, y: defaultChorusDepthY }],
   chorusRate: [{ x: 0, y: defaultChorusRateY }, { x: 1, y: defaultChorusRateY }],
@@ -233,6 +238,7 @@ const defaultCurves = {
   flangerDepth: () => [{ x: 0, y: defaultFlangerDepthY }, { x: 1, y: defaultFlangerDepthY }],
   flangerRate: () => [{ x: 0, y: defaultFlangerRateY }, { x: 1, y: defaultFlangerRateY }],
   flangerFeedback: () => [{ x: 0, y: defaultFlangerFeedbackY }, { x: 1, y: defaultFlangerFeedbackY }],
+  flangerMix: () => [{ x: 0, y: defaultFlangerMixY }, { x: 1, y: defaultFlangerMixY }],
   chorusDelay: () => [{ x: 0, y: defaultChorusDelayY }, { x: 1, y: defaultChorusDelayY }],
   chorusDepth: () => [{ x: 0, y: defaultChorusDepthY }, { x: 1, y: defaultChorusDepthY }],
   chorusRate: () => [{ x: 0, y: defaultChorusRateY }, { x: 1, y: defaultChorusRateY }],
@@ -254,6 +260,7 @@ const editedCurves = {
   flangerDepth: false,
   flangerRate: false,
   flangerFeedback: false,
+  flangerMix: false,
   chorusDelay: false,
   chorusDepth: false,
   chorusRate: false,
@@ -270,11 +277,12 @@ const curveLabels = {
   bandpassWidth: "Band Pass Width",
   combDelay: "Comb Delay Time",
   combFeedback: "Comb Feedback",
-  combMix: "Comb Mix",
+  combMix: "Comb Amount",
   flangerDelay: "Flanger Delay Time",
   flangerDepth: "Flanger Depth",
   flangerRate: "Flanger Rate",
   flangerFeedback: "Flanger Feedback",
+  flangerMix: "Flanger Mix",
   chorusDelay: "Chorus Delay Time",
   chorusDepth: "Chorus Depth",
   chorusRate: "Chorus Rate",
@@ -303,22 +311,23 @@ const parameterLegends = {
   ],
   bandpass: [
     { color: curveColors.bandpassCenter, text: "center frequency 40 Hz-18 kHz" },
-    { color: curveColors.bandpassWidth, text: "width narrow-full" }
+    { color: curveColors.bandpassWidth, text: "width narrow-wide" }
   ],
   comb: [
     { color: curveColors.combDelay, text: "delay time 0.5-100 ms" },
     { color: curveColors.combFeedback, text: "feedback 0.00-0.95" },
-    { color: curveColors.combMix, text: "mix 0-100%" }
+    { color: curveColors.combMix, text: "amount 0-100% · original → comb" }
   ],
   flanger: [
     { color: curveColors.flangerDelay, text: "delay time 0.5-10 ms" },
-    { color: curveColors.flangerDepth, text: "depth 0-10 ms" },
+    { color: curveColors.flangerDepth, text: "depth 0-10 ms · limited by delay" },
     { color: curveColors.flangerRate, text: "rate 0.02-5 Hz" },
-    { color: curveColors.flangerFeedback, text: "feedback 0.00-0.85" }
+    { color: curveColors.flangerFeedback, text: "feedback 0.00-0.85" },
+    { color: curveColors.flangerMix, text: "mix 0-100%" }
   ],
   chorus: [
     { color: curveColors.chorusDelay, text: "delay time 10-35 ms" },
-    { color: curveColors.chorusDepth, text: "depth 0-20 ms" },
+    { color: curveColors.chorusDepth, text: "depth 0-20 ms · limited by delay" },
     { color: curveColors.chorusRate, text: "rate 0.02-3 Hz" },
     { color: curveColors.chorusMix, text: "mix 0-100%" }
   ],
@@ -333,7 +342,7 @@ function effectForCurve(name) {
   if (!name) return null;
   if (name === "bandpassCenter" || name === "bandpassWidth") return "bandpass";
   if (name === "combDelay" || name === "combFeedback" || name === "combMix") return "comb";
-  if (name === "flangerDelay" || name === "flangerDepth" || name === "flangerRate" || name === "flangerFeedback") return "flanger";
+  if (name === "flangerDelay" || name === "flangerDepth" || name === "flangerRate" || name === "flangerFeedback" || name === "flangerMix") return "flanger";
   if (name === "chorusDelay" || name === "chorusDepth" || name === "chorusRate" || name === "chorusMix") return "chorus";
   if (name === "delayTime" || name === "delayFeedback" || name === "delayMix") return "delay";
   return name;
@@ -358,7 +367,7 @@ function effectClassName(name) {
 function curveNamesForEffect(name) {
   if (name === "bandpass") return ["bandpassCenter", "bandpassWidth"];
   if (name === "comb") return ["combDelay", "combFeedback", "combMix"];
-  if (name === "flanger") return ["flangerDelay", "flangerDepth", "flangerRate", "flangerFeedback"];
+  if (name === "flanger") return ["flangerDelay", "flangerDepth", "flangerRate", "flangerFeedback", "flangerMix"];
   if (name === "chorus") return ["chorusDelay", "chorusDepth", "chorusRate", "chorusMix"];
   if (name === "delay") return ["delayTime", "delayFeedback", "delayMix"];
   return [name];
@@ -582,7 +591,7 @@ function formatQ(q) {
 
 function formatWidth(widthNorm) {
   const clamped = Math.max(0, Math.min(1, widthNorm));
-  return clamped >= 0.995 ? "Width 1.00 full" : `Width ${clamped.toFixed(2)}`;
+  return `Width ${Math.round(clamped * 100)}% · Q ${qFromWidthNorm(clamped).toFixed(2)}`;
 }
 
 function combDelayMsFromNorm(y) {
@@ -684,7 +693,7 @@ function formatTimeEffectValue(name, y) {
   if (name === "chorusDelay") return `${chorusDelayMsFromNorm(y).toFixed(1)} ms`;
   if (name === "chorusDepth") return `${chorusDepthMsFromNorm(y).toFixed(1)} ms`;
   if (name === "chorusRate") return `${chorusRateHzFromNorm(y).toFixed(2)} Hz`;
-  if (name === "chorusMix") return `${Math.round(combMixFromNorm(y) * 100)}%`;
+  if (name === "flangerMix" || name === "chorusMix") return `${Math.round(combMixFromNorm(y) * 100)}%`;
   if (name === "delayTime") return delayTimeMsFromNorm(y) >= 1000
     ? `${(delayTimeMsFromNorm(y) / 1000).toFixed(2)} s`
     : `${Math.round(delayTimeMsFromNorm(y))} ms`;
@@ -702,16 +711,38 @@ function formatCurrentCombValue(name) {
   return "";
 }
 
+function formatCurrentFilterValue(name) {
+  const norm = buffer?.duration ? Math.max(0, Math.min(1, playheadSeconds / buffer.duration)) : 0;
+  const y = valueAt(curves[name], norm);
+  if (name === "bandpassWidth") return formatWidth(isPlaying ? currentBandPassWidth : y);
+  return formatCutoff(isPlaying ? currentCutoffs[name] : cutoffFromNorm(y));
+}
+
+function formatCurrentModulationDepth(effect, norm) {
+  const flanger = effect === "flanger";
+  const current = flanger ? currentFlanger : currentChorus;
+  const depthFromNorm = flanger ? flangerDepthMsFromNorm : chorusDepthMsFromNorm;
+  const delayFromNorm = flanger ? flangerDelayMsFromNorm : chorusDelayMsFromNorm;
+  const requested = isPlaying ? current.depthMs : depthFromNorm(valueAt(curves[`${effect}Depth`], norm));
+  const delay = delayFromNorm(valueAt(curves[`${effect}Delay`], norm));
+  const effective = isPlaying && Number.isFinite(current.effectiveDepthMs)
+    ? current.effectiveDepthMs : Math.min(requested, Math.max(0, delay - (flanger ? 0.25 : 5)));
+  return requested - effective > 0.005
+    ? `${requested.toFixed(1)} ms → ${effective.toFixed(2)} ms effective`
+    : `${requested.toFixed(1)} ms`;
+}
+
 function formatCurrentTimeEffectValue(name) {
   const norm = buffer?.duration ? Math.max(0, Math.min(1, playheadSeconds / buffer.duration)) : 0;
   const curveValue = valueAt(curves[name], norm);
   if (name === "flangerDelay") return `${(isPlaying ? currentFlanger.delayMs : flangerDelayMsFromNorm(curveValue)).toFixed(1)} ms`;
-  if (name === "flangerDepth") return `${(isPlaying ? currentFlanger.depthMs : flangerDepthMsFromNorm(curveValue)).toFixed(1)} ms`;
+  if (name === "flangerDepth") return formatCurrentModulationDepth("flanger", norm);
   if (name === "flangerRate") return `${(isPlaying ? currentFlanger.rateHz : flangerRateHzFromNorm(curveValue)).toFixed(2)} Hz`;
   if (name === "flangerFeedback") return (isPlaying ? currentFlanger.feedback : modulationFeedbackFromNorm(curveValue)).toFixed(2);
   if (name === "chorusDelay") return `${(isPlaying ? currentChorus.delayMs : chorusDelayMsFromNorm(curveValue)).toFixed(1)} ms`;
-  if (name === "chorusDepth") return `${(isPlaying ? currentChorus.depthMs : chorusDepthMsFromNorm(curveValue)).toFixed(1)} ms`;
+  if (name === "chorusDepth") return formatCurrentModulationDepth("chorus", norm);
   if (name === "chorusRate") return `${(isPlaying ? currentChorus.rateHz : chorusRateHzFromNorm(curveValue)).toFixed(2)} Hz`;
+  if (name === "flangerMix") return `${Math.round((isPlaying ? currentFlanger.mix : combMixFromNorm(curveValue)) * 100)}%`;
   if (name === "chorusMix") return `${Math.round((isPlaying ? currentChorus.mix : combMixFromNorm(curveValue)) * 100)}%`;
   if (name === "delayTime") {
     const value = isPlaying ? currentDelay.timeMs : delayTimeMsFromNorm(curveValue);
@@ -757,6 +788,7 @@ function sendCurves() {
     flangerDepthCurve: curves.flangerDepth,
     flangerRateCurve: curves.flangerRate,
     flangerFeedbackCurve: curves.flangerFeedback,
+    flangerMixCurve: curves.flangerMix,
     chorusDelayCurve: curves.chorusDelay,
     chorusDepthCurve: curves.chorusDepth,
     chorusRateCurve: curves.chorusRate,
@@ -873,7 +905,7 @@ function getSettings() {
 
 async function getOfflineRenderer() {
   if (!renderOffline) {
-    const module = await import("./offline-render.js?v=20261006-stream-01");
+    const module = await import("./offline-render.js?v=20261013-depth1");
     renderOffline = module.renderOffline;
   }
   return renderOffline;
@@ -1086,7 +1118,7 @@ function drawLowPassAxis() {
 function drawWidthAxis() {
   const h = canvasCssHeight;
   const labels = [
-    { value: 1, text: "full" },
+    { value: 1, text: "wide" },
     { value: 0.75, text: "75%" },
     { value: 0.5, text: "50%" },
     { value: 0.25, text: "25%" },
@@ -1416,7 +1448,7 @@ function draw() {
         ? formatCurrentCombValue(activeCurve)
         : (["flanger", "chorus", "delay"].includes(activeEffect)
           ? formatCurrentTimeEffectValue(activeCurve)
-        : (activeCurve === "bandpassWidth" ? formatWidth(currentBandPassWidth) : formatCutoff(currentCutoffs[activeCurve]))
+        : formatCurrentFilterValue(activeCurve)
         )
     )
     : "--";
@@ -1546,7 +1578,7 @@ async function setupAudio() {
     throw new Error("AudioWorklet is not available. Use a current Chrome, Edge, or Safari version over HTTPS.");
   }
 
-    await audioContext.audioWorklet.addModule("src/timbre-worklet.js?v=20261006-bypass-02");
+    await audioContext.audioWorklet.addModule("src/timbre-worklet.js?v=20261013-depth1");
     node = new AudioWorkletNode(audioContext, "timbre-filter-processor", {
       numberOfInputs: 0,
       numberOfOutputs: 1,
@@ -1570,10 +1602,13 @@ async function setupAudio() {
         currentComb.mix = event.data.combMix;
         currentFlanger.delayMs = event.data.flangerDelayMs;
         currentFlanger.depthMs = event.data.flangerDepthMs;
+        currentFlanger.effectiveDepthMs = event.data.flangerEffectiveDepthMs;
         currentFlanger.rateHz = event.data.flangerRateHz;
         currentFlanger.feedback = event.data.flangerFeedback;
+        currentFlanger.mix = event.data.flangerMix;
         currentChorus.delayMs = event.data.chorusDelayMs;
         currentChorus.depthMs = event.data.chorusDepthMs;
+        currentChorus.effectiveDepthMs = event.data.chorusEffectiveDepthMs;
         currentChorus.rateHz = event.data.chorusRateHz;
         currentChorus.mix = event.data.chorusMix;
         currentDelay.timeMs = event.data.delayTimeMs;
@@ -1877,6 +1912,7 @@ function updateEffectButtons() {
   flangerDepthParam.hidden = !showsFlangerParams;
   flangerRateParam.hidden = !showsFlangerParams;
   flangerFeedbackParam.hidden = !showsFlangerParams;
+  flangerMixParam.hidden = !showsFlangerParams;
   chorusDelayParam.hidden = !showsChorusParams;
   chorusDepthParam.hidden = !showsChorusParams;
   chorusRateParam.hidden = !showsChorusParams;
@@ -1893,6 +1929,7 @@ function updateEffectButtons() {
   flangerDepthParam.classList.toggle("active", activeCurve === "flangerDepth");
   flangerRateParam.classList.toggle("active", activeCurve === "flangerRate");
   flangerFeedbackParam.classList.toggle("active", activeCurve === "flangerFeedback");
+  flangerMixParam.classList.toggle("active", activeCurve === "flangerMix");
   chorusDelayParam.classList.toggle("active", activeCurve === "chorusDelay");
   chorusDepthParam.classList.toggle("active", activeCurve === "chorusDepth");
   chorusRateParam.classList.toggle("active", activeCurve === "chorusRate");
@@ -1995,6 +2032,7 @@ flangerRateParam.addEventListener("click", () => {
   setActiveCurve("flangerRate");
 });
 
+flangerMixParam.addEventListener("click", () => setActiveCurve("flangerMix"));
 flangerFeedbackParam.addEventListener("click", () => {
   setActiveCurve("flangerFeedback");
 });

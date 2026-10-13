@@ -19,6 +19,7 @@ class TimbreFilterProcessor extends AudioWorkletProcessor {
     this.flangerDelayCurve = [{ x: 0, y: 0.598105 }, { x: 1, y: 0.598105 }];
     this.flangerDepthCurve = [{ x: 0, y: 0.45 }, { x: 1, y: 0.45 }];
     this.flangerRateCurve = [{ x: 0, y: 0.52 }, { x: 1, y: 0.52 }];
+    this.flangerMixCurve = [{ x: 0, y: 0.54 }, { x: 1, y: 0.54 }]; // Legacy messages without MIX retain the former fixed blend.
     this.flangerFeedbackCurve = [{ x: 0, y: 0.529412 }, { x: 1, y: 0.529412 }];
     this.chorusDelayCurve = [{ x: 0, y: 0.32 }, { x: 1, y: 0.32 }];
     this.chorusDepthCurve = [{ x: 0, y: 0.4 }, { x: 1, y: 0.4 }];
@@ -79,6 +80,7 @@ class TimbreFilterProcessor extends AudioWorkletProcessor {
         this.flangerDepthCurve = data.flangerDepthCurve || this.flangerDepthCurve;
         this.flangerRateCurve = data.flangerRateCurve || this.flangerRateCurve;
         this.flangerFeedbackCurve = data.flangerFeedbackCurve || this.flangerFeedbackCurve;
+        this.flangerMixCurve = data.flangerMixCurve || [{ x: 0, y: 0.54 }, { x: 1, y: 0.54 }];
         this.chorusDelayCurve = data.chorusDelayCurve || this.chorusDelayCurve;
         this.chorusDepthCurve = data.chorusDepthCurve || this.chorusDepthCurve;
         this.chorusRateCurve = data.chorusRateCurve || this.chorusRateCurve;
@@ -329,7 +331,8 @@ class TimbreFilterProcessor extends AudioWorkletProcessor {
     const v2 = state.ic2 + (a2 * state.ic1) + (a3 * v3);
     state.ic1 = (2 * v1) - state.ic1;
     state.ic2 = (2 * v2) - state.ic2;
-    return v1;
+    // Unity gain at the center frequency: Width controls bandwidth, not boost.
+    return k * v1;
   }
 
   processComb(input, state, delayMs, feedback, mix) {
@@ -368,23 +371,28 @@ class TimbreFilterProcessor extends AudioWorkletProcessor {
     return buffer[i0] + ((buffer[i1] - buffer[i0]) * frac);
   }
 
-  processFlanger(input, state, delayMs, depthMs, rateHz, feedback) {
+  processFlanger(input, state, delayMs, depthMs, rateHz, feedback, mix = 0.54) {
     state.delayMs += (Math.max(0.5, Math.min(10, delayMs)) - state.delayMs) * 0.0015;
     const lfo = 0.5 + (0.5 * Math.sin(state.phase * Math.PI * 2));
-    const movingDelay = Math.max(0.25, state.delayMs + ((lfo - 0.5) * 2 * Math.max(0, Math.min(10, depthMs))));
+    const effectiveDepthMs = Math.min(Math.max(0, Math.min(10, depthMs)), Math.max(0, state.delayMs - 0.25));
+    state.effectiveDepthMs = effectiveDepthMs;
+    const movingDelay = Math.max(0.25, state.delayMs + ((lfo - 0.5) * 2 * effectiveDepthMs));
     const delayed = this.readDelayBuffer(state, movingDelay);
     const safeFeedback = Math.max(0, Math.min(0.85, feedback));
     state.damp += (delayed - state.damp) * 0.35;
     state.buffer[state.index] = Math.max(-1.35, Math.min(1.35, input + (state.damp * safeFeedback)));
     state.index = (state.index + 1) % state.buffer.length;
     state.phase = (state.phase + (Math.max(0.02, Math.min(5, rateHz)) / sampleRate)) % 1;
-    return (input * 0.46) + (delayed * 0.54);
+    const safeMix = Math.max(0, Math.min(1, mix));
+    return (input * (1 - safeMix)) + (delayed * safeMix);
   }
 
   processChorus(input, state, delayMs, depthMs, rateHz, mix) {
     state.delayMs += (Math.max(10, Math.min(35, delayMs)) - state.delayMs) * 0.0015;
     const lfo = 0.5 + (0.5 * Math.sin(state.phase * Math.PI * 2));
-    const movingDelay = Math.max(5, state.delayMs + ((lfo - 0.5) * 2 * Math.max(0, Math.min(20, depthMs))));
+    const effectiveDepthMs = Math.min(Math.max(0, Math.min(20, depthMs)), Math.max(0, state.delayMs - 5));
+    state.effectiveDepthMs = effectiveDepthMs;
+    const movingDelay = Math.max(5, state.delayMs + ((lfo - 0.5) * 2 * effectiveDepthMs));
     const delayed = this.readDelayBuffer(state, movingDelay);
     state.buffer[state.index] = input;
     state.index = (state.index + 1) % state.buffer.length;
@@ -493,6 +501,7 @@ class TimbreFilterProcessor extends AudioWorkletProcessor {
         const flangerDepthMs = this.flangerDepthMsFromNorm(this.valueAt(this.flangerDepthCurve, norm));
         const flangerRateHz = this.flangerRateHzFromNorm(this.valueAt(this.flangerRateCurve, norm));
         const flangerFeedback = this.modulationFeedbackFromNorm(this.valueAt(this.flangerFeedbackCurve, norm));
+        const flangerMix = this.combMixFromNorm(this.valueAt(this.flangerMixCurve, norm));
         const chorusDelayMs = this.chorusDelayMsFromNorm(this.valueAt(this.chorusDelayCurve, norm));
         const chorusDepthMs = this.chorusDepthMsFromNorm(this.valueAt(this.chorusDepthCurve, norm));
         const chorusRateHz = this.chorusRateHzFromNorm(this.valueAt(this.chorusRateCurve, norm));
@@ -511,15 +520,15 @@ class TimbreFilterProcessor extends AudioWorkletProcessor {
           } else if (effectName === "highpass") {
             dryL = this.processHighPass(dryL, this.highPassLeftState, highPassCutoff);
             dryR = this.processHighPass(dryR, this.highPassRightState, highPassCutoff);
-          } else if (effectName === "bandpass" && bandPassWidth < 0.995) {
+          } else if (effectName === "bandpass") {
             dryL = this.processBandPass(dryL, this.bandPassLeftState, bandPassCenter, bandPassQ);
             dryR = this.processBandPass(dryR, this.bandPassRightState, bandPassCenter, bandPassQ);
           } else if (effectName === "comb") {
             dryL = this.processComb(dryL, this.combLeftState, combDelayMs, combFeedback, combMix);
             dryR = this.processComb(dryR, this.combRightState, combDelayMs, combFeedback, combMix);
           } else if (effectName === "flanger") {
-            dryL = this.processFlanger(dryL, this.flangerLeftState, flangerDelayMs, flangerDepthMs, flangerRateHz, flangerFeedback);
-            dryR = this.processFlanger(dryR, this.flangerRightState, flangerDelayMs, flangerDepthMs, flangerRateHz, flangerFeedback);
+            dryL = this.processFlanger(dryL, this.flangerLeftState, flangerDelayMs, flangerDepthMs, flangerRateHz, flangerFeedback, flangerMix);
+            dryR = this.processFlanger(dryR, this.flangerRightState, flangerDelayMs, flangerDepthMs, flangerRateHz, flangerFeedback, flangerMix);
           } else if (effectName === "chorus") {
             dryL = this.processChorus(dryL, this.chorusLeftState, chorusDelayMs, chorusDepthMs, chorusRateHz, chorusMix);
             dryR = this.processChorus(dryR, this.chorusRightState, chorusDelayMs, chorusDepthMs, chorusRateHz, chorusMix);
@@ -568,10 +577,13 @@ class TimbreFilterProcessor extends AudioWorkletProcessor {
             combMix,
             flangerDelayMs,
             flangerDepthMs,
+            flangerEffectiveDepthMs: this.flangerLeftState.effectiveDepthMs,
             flangerRateHz,
             flangerFeedback,
+            flangerMix,
             chorusDelayMs,
             chorusDepthMs,
+            chorusEffectiveDepthMs: this.chorusLeftState.effectiveDepthMs,
             chorusRateHz,
             chorusMix,
             delayTimeMs,

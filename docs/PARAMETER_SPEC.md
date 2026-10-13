@@ -10,24 +10,25 @@ The table records current product behavior. Defaults are the musical-unit values
 
 | Parameter ID | Display name | Module | Unit | Range | Default | Mapping | Smoothing |
 |---|---|---|---|---|---|---|---|
-| `lowpass` | Low Pass | Low Pass | Hz | 40 to min(18,000, 0.45 x sample rate) | about 1.0 kHz | Log | None beyond curve interpolation |
-| `highpass` | High Pass | High Pass | Hz | 40 to min(18,000, 0.45 x sample rate) | about 400 Hz | Log | None beyond curve interpolation |
-| `bandpassCenter` | Center Frequency | Band Pass | Hz | 40 to min(18,000, 0.45 x sample rate) | about 1.2 kHz | Log | None beyond curve interpolation |
-| `bandpassWidth` | Width | Band Pass | normalized / Q | 0 narrow to 1 full; Q 12 to 0.5 | 0 / Q 12 | Custom inverse exponential | None |
-| `combDelay` | Delay Time | Comb | ms | 0.5-100 | about 8 | Log | Per-sample coefficient 0.0025 |
-| `combFeedback` | Feedback | Comb | ratio | 0-0.95 | 0.80 | Linear | None |
-| `combMix` | Mix | Comb | percent | 0-100 | 90 | Linear | None |
-| `flangerDelay` | Delay Time | Flanger | ms | 0.5-10 | about 2 | Log | Per-sample coefficient 0.0015 |
-| `flangerDepth` | Depth | Flanger | ms | 0-10 | 6 | Linear | None |
-| `flangerRate` | Rate | Flanger | Hz | 0.02-5 | about 0.30 | Log | Continuous LFO phase |
-| `flangerFeedback` | Feedback | Flanger | ratio | 0-0.85 | 0.65 | Linear | None |
+| `lowpass` | Low Pass | Low Pass | Hz | 40 to min(18,000, 0.45 x sample rate) | 800 Hz | Log | None beyond curve interpolation |
+| `highpass` | High Pass | High Pass | Hz | 40 to min(18,000, 0.45 x sample rate) | 900 Hz | Log | None beyond curve interpolation |
+| `bandpassCenter` | Center Frequency | Band Pass | Hz | 40 to min(18,000, 0.45 x sample rate) | 1.5 kHz | Log | None beyond curve interpolation |
+| `bandpassWidth` | Width | Band Pass | normalized / Q | 0 narrow to 1 wide; Q 12 to 0.5 | about 0.436 / Q 3 | Custom inverse exponential | None |
+| `combDelay` | Delay Time | Comb | ms | 0.5-100 | 4 | Log | Per-sample coefficient 0.0025 |
+| `combFeedback` | Feedback | Comb | ratio | 0-0.95 | 0.72 | Linear | None |
+| `combMix` | Amount | Comb | percent | 0-100 | 85 | Linear | None |
+| `flangerDelay` | Delay Time | Flanger | ms | 0.5-10 | 3 | Log | Per-sample coefficient 0.0015 |
+| `flangerDepth` | Depth | Flanger | ms | 0-10 | 2.5 | Linear | None |
+| `flangerRate` | Rate | Flanger | Hz | 0.02-5 | 0.25 | Log | Continuous LFO phase |
+| `flangerFeedback` | Feedback | Flanger | ratio | 0-0.85 | 0.60 | Linear | None |
+| `flangerMix` | Mix | Flanger | percent | 0-100 | 50 | Linear | Curve interpolation |
 | `chorusDelay` | Delay Time | Chorus | ms | 10-35 | 22 | Linear | Per-sample coefficient 0.0015 |
-| `chorusDepth` | Depth | Chorus | ms | 0-20 | 10 | Linear | None |
-| `chorusRate` | Rate | Chorus | Hz | 0.02-3 | about 0.65 | Log | Continuous LFO phase |
-| `chorusMix` | Mix | Chorus | percent | 0-100 | 55 | Linear | None |
-| `delayTime` | Delay Time | Delay | ms | 100-1500 | about 420 | Linear | Per-sample coefficient 0.0008 |
-| `delayFeedback` | Feedback | Delay | ratio | 0-0.85 | 0.48 | Linear | None |
-| `delayMix` | Mix | Delay | percent | 0-100 | 42 | Linear | None |
+| `chorusDepth` | Depth | Chorus | ms | 0-20 | 4 | Linear | None |
+| `chorusRate` | Rate | Chorus | Hz | 0.02-3 | 0.80 | Log | Continuous LFO phase |
+| `chorusMix` | Mix | Chorus | percent | 0-100 | 50 | Linear | None |
+| `delayTime` | Delay Time | Delay | ms | 100-1500 | 320 | Linear | Per-sample coefficient 0.0008 |
+| `delayFeedback` | Feedback | Delay | ratio | 0-0.85 | 0.45 | Linear | None |
+| `delayMix` | Mix | Delay | percent | 0-100 | 40 | Linear | None |
 
 All parameters support curves and automation over source-normalized time. Preview and Render currently implement the same ranges, mappings, interpolation, and delay smoothing values in separate files.
 
@@ -36,7 +37,7 @@ All parameters support curves and automation over source-normalized time. Previe
 Let `y` be clamped to `[0,1]`.
 
 - Cutoff/Center: `40 * (maxHz / 40)^y`, where `maxHz = min(18000, sampleRate * 0.45)`.
-- Band Q: `0.5 * 24^(1-y)`. Values `y >= 0.995` are treated as full-band bypass.
+- Band Q: `0.5 * 24^(1-y)`. The entire range remains a band-pass filter; no Width value bypasses it. Center-frequency gain is unity.
 - Comb Delay: `0.5 * (100 / 0.5)^y` milliseconds.
 - Comb Feedback: `0.95y`.
 - Flanger Delay: `0.5 * (10 / 0.5)^y` milliseconds.
@@ -86,9 +87,9 @@ Current state initialization also begins Flanger at 3 ms, Chorus at 18 ms, and D
 
 ### Band Width
 
-- `0` is narrow and resonant (Q 12).
+- `0` is narrow (Q 12), with unity center-frequency gain.
 - Increasing Width lowers Q and broadens the audible band.
-- `1.00 full` bypasses Band Pass so all frequencies pass. This is a product behavior, not merely a display label.
+- `1.00 wide` gives Q 0.5 and remains filtered. Use the effect Off control for bypass.
 
 ### Delay-based effects
 
@@ -113,4 +114,18 @@ Current values are extracted from the implementation and prior approved product 
 
 ## Standalone Mapping
 
-Retain IDs, normalized ranges, equations, defaults, interpolation, smoothing coefficients, bypass threshold, and sample-rate cutoff cap. Native UI resolution may differ, but saved normalized values must produce the same musical-unit targets.
+Retain IDs, normalized ranges, equations, defaults, interpolation, smoothing coefficients, explicit effect bypass, and sample-rate cutoff cap. Native UI resolution may differ, but saved normalized values must produce the same musical-unit targets.
+
+## Character starting values — 2026-10-13
+See [research and preset contract](CHARACTER_PRESETS_2026-10-13.md). New/default and Clear Current/Reset All curves use these values. Effects remain Off at launch; toggling an effect does not overwrite edited curves. Missing Flanger Mix in older curve payloads retains 54% wet. MIX 100% is delayed-only and does not mean maximum comb cancellation.
+
+Comb Amount retains the ID `combMix`. It blends original input with the comb
+result `(input + delayed)/2`, not with delayed-only audio. 100% Amount still
+contains the original component. Default remains 85%; feedback is independent.
+
+## Delay / Depth limits — 2026-10-13
+Flanger and Chorus now limit the effective sine amplitude to the smoothed Delay
+minus the minimum read delay (.25 ms / 5 ms). They no longer clip the bottom
+of the LFO sweep for excessive Depth. Requested values and defaults remain;
+limited values show requested → effective depth in the readout.
+[Contract, compatibility and verification](MODULATION_DEPTH_2026-10-13.md).

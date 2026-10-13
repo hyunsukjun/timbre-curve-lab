@@ -116,3 +116,19 @@ Oscillator retains its existing source-duration seek cap for convolution tails.
 Verification covers syntax, keyboard contracts and browser layout; file-based
 Labs also exercised silent-WAV pause/resume. Audible listening, Safari/Windows,
 long-file performance and Oscillator mode-specific listening remain separate QA.
+
+## Flanger Mix — 2026-10-13
+Mix is the fifth Flanger parameter tab, using the existing mix color #6fa8dc,
+0–100% axis and percentage readout. No new panel or preset browser is introduced.
+
+## Band Pass width labeling — 2026-10-13
+Use narrow / wide for the Width axis and show percentage plus Q in the value
+readout. Maximum width remains filtered, so do not label it full or bypass.
+
+## Comb Amount label — 2026-10-13
+Use Amount for Comb only; retain its existing percentage axis and color. The
+legend and tooltip distinguish original-to-comb blending from delayed-only Mix.
+
+## Effective Depth readout — 2026-10-13
+Keep requested-depth axes and curves. When limited by Delay, append the actual
+effective depth in milliseconds to the readout, with explanatory tab tooltip.

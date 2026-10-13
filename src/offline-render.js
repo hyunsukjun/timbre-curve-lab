@@ -148,7 +148,8 @@ function processBandPass(input, state, center, q, sampleRate) {
   const v2 = state.ic2 + (a2 * state.ic1) + (a3 * v3);
   state.ic1 = (2 * v1) - state.ic1;
   state.ic2 = (2 * v2) - state.ic2;
-  return v1;
+  // Unity gain at the center frequency: Width controls bandwidth, not boost.
+  return k * v1;
 }
 
 function processComb(input, state, delayMs, feedback, mix, sampleRate) {
@@ -187,23 +188,28 @@ function readDelayBuffer(state, delayMs, sampleRate) {
   return buffer[i0] + ((buffer[i1] - buffer[i0]) * frac);
 }
 
-function processFlanger(input, state, delayMs, depthMs, rateHz, feedback, sampleRate) {
+function processFlanger(input, state, delayMs, depthMs, rateHz, feedback, sampleRate, mix = 0.54) {
   state.delayMs += (Math.max(0.5, Math.min(10, delayMs)) - state.delayMs) * 0.0015;
   const lfo = 0.5 + (0.5 * Math.sin(state.phase * Math.PI * 2));
-  const movingDelay = Math.max(0.25, state.delayMs + ((lfo - 0.5) * 2 * Math.max(0, Math.min(10, depthMs))));
+  const effectiveDepthMs = Math.min(Math.max(0, Math.min(10, depthMs)), Math.max(0, state.delayMs - 0.25));
+  state.effectiveDepthMs = effectiveDepthMs;
+  const movingDelay = Math.max(0.25, state.delayMs + ((lfo - 0.5) * 2 * effectiveDepthMs));
   const delayed = readDelayBuffer(state, movingDelay, sampleRate);
   const safeFeedback = Math.max(0, Math.min(0.85, feedback));
   state.damp += (delayed - state.damp) * 0.35;
   state.buffer[state.index] = Math.max(-1.35, Math.min(1.35, input + (state.damp * safeFeedback)));
   state.index = (state.index + 1) % state.buffer.length;
   state.phase = (state.phase + (Math.max(0.02, Math.min(5, rateHz)) / sampleRate)) % 1;
-  return (input * 0.46) + (delayed * 0.54);
+  const safeMix = Math.max(0, Math.min(1, mix));
+  return (input * (1 - safeMix)) + (delayed * safeMix);
 }
 
 function processChorus(input, state, delayMs, depthMs, rateHz, mix, sampleRate) {
   state.delayMs += (Math.max(10, Math.min(35, delayMs)) - state.delayMs) * 0.0015;
   const lfo = 0.5 + (0.5 * Math.sin(state.phase * Math.PI * 2));
-  const movingDelay = Math.max(5, state.delayMs + ((lfo - 0.5) * 2 * Math.max(0, Math.min(20, depthMs))));
+  const effectiveDepthMs = Math.min(Math.max(0, Math.min(20, depthMs)), Math.max(0, state.delayMs - 5));
+  state.effectiveDepthMs = effectiveDepthMs;
+  const movingDelay = Math.max(5, state.delayMs + ((lfo - 0.5) * 2 * effectiveDepthMs));
   const delayed = readDelayBuffer(state, movingDelay, sampleRate);
   state.buffer[state.index] = input;
   state.index = (state.index + 1) % state.buffer.length;
@@ -323,6 +329,7 @@ export async function renderOffline({ audioBuffer, curves, settings, signal, onP
     const flangerDepthMs = flangerDepthMsFromNorm(valueAt(curves.flangerDepth, norm));
     const flangerRateHz = flangerRateHzFromNorm(valueAt(curves.flangerRate, norm));
     const flangerFeedback = modulationFeedbackFromNorm(valueAt(curves.flangerFeedback, norm));
+    const flangerMix = curves.flangerMix?.length ? combMixFromNorm(valueAt(curves.flangerMix, norm)) : 0.54;
     const chorusDelayMs = chorusDelayMsFromNorm(valueAt(curves.chorusDelay, norm));
     const chorusDepthMs = chorusDepthMsFromNorm(valueAt(curves.chorusDepth, norm));
     const chorusRateHz = chorusRateHzFromNorm(valueAt(curves.chorusRate, norm));
@@ -339,15 +346,15 @@ export async function renderOffline({ audioBuffer, curves, settings, signal, onP
       } else if (effectName === "highpass") {
         renderedL = processHighPass(renderedL, highPassLeftState, highPassCutoff, sampleRate);
         renderedR = processHighPass(renderedR, highPassRightState, highPassCutoff, sampleRate);
-      } else if (effectName === "bandpass" && bandPassWidth < 0.995) {
+      } else if (effectName === "bandpass") {
         renderedL = processBandPass(renderedL, bandPassLeftState, bandPassCenter, bandPassQ, sampleRate);
         renderedR = processBandPass(renderedR, bandPassRightState, bandPassCenter, bandPassQ, sampleRate);
       } else if (effectName === "comb") {
         renderedL = processComb(renderedL, combLeftState, combDelayMs, combFeedback, combMix, sampleRate);
         renderedR = processComb(renderedR, combRightState, combDelayMs, combFeedback, combMix, sampleRate);
       } else if (effectName === "flanger") {
-        renderedL = processFlanger(renderedL, flangerLeftState, flangerDelayMs, flangerDepthMs, flangerRateHz, flangerFeedback, sampleRate);
-        renderedR = processFlanger(renderedR, flangerRightState, flangerDelayMs, flangerDepthMs, flangerRateHz, flangerFeedback, sampleRate);
+        renderedL = processFlanger(renderedL, flangerLeftState, flangerDelayMs, flangerDepthMs, flangerRateHz, flangerFeedback, sampleRate, flangerMix);
+        renderedR = processFlanger(renderedR, flangerRightState, flangerDelayMs, flangerDepthMs, flangerRateHz, flangerFeedback, sampleRate, flangerMix);
       } else if (effectName === "chorus") {
         renderedL = processChorus(renderedL, chorusLeftState, chorusDelayMs, chorusDepthMs, chorusRateHz, chorusMix, sampleRate);
         renderedR = processChorus(renderedR, chorusRightState, chorusDelayMs, chorusDepthMs, chorusRateHz, chorusMix, sampleRate);

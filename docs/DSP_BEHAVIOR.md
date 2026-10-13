@@ -40,7 +40,7 @@ Low Pass, High Pass, and Band Pass use a topology-preserving-transform state-var
 - Low Pass output: low state, fixed Q 0.71.
 - High Pass output: high state, fixed Q 0.71.
 - Band Pass output: band state, Q controlled by Width.
-- Band Width `>= 0.995`: full-band bypass instead of a very broad colored filter.
+- Band Width spans Q 12 to 0.5 continuously; every Width value remains filtered. Return `v1 / Q` for unity center-frequency gain. Explicit effect Off is the only Band Pass bypass.
 
 There is no additional filter-coefficient smoothing. Smoothstep curve interpolation reduces point corners, but rapid dense curves can still update cutoff quickly. Audible zipper/click risk is `TO BE VERIFIED` through formal listening.
 
@@ -267,3 +267,18 @@ See [AIFF import contract](AIFF_IMPORT.md): local PCM AIFF 16/24-bit mono/stereo
 normalization into PCM WAV before the established decoder. Existing DSP,
 resampling and Lab-specific channel policies are preserved. Browser and memory
 verification limits are recorded there.
+
+## Character starts and Flanger MIX — 2026-10-13
+PROJECT-SPECIFIC: seven effect starting curves updated and `flangerMix` (0–1,
+default 0.5) exposed with the existing curve editing, display, reset and transport
+paths. Preview and Render both blend dry/delayed signals; legacy missing MIX
+retains 0.54. Effects still start Off and edited curves survive toggling.
+No damping, limiter, source-time or feedback algorithm changes.
+[Values, rationale, sources and verification boundaries](CHARACTER_PRESETS_2026-10-13.md).
+
+## Delay / Depth limits — 2026-10-13
+Flanger and Chorus now limit the effective sine amplitude to the smoothed Delay
+minus the minimum read delay (.25 ms / 5 ms). They no longer clip the bottom
+of the LFO sweep for excessive Depth. Requested values and defaults remain;
+limited values show requested → effective depth in the readout.
+[Contract, compatibility and verification](MODULATION_DEPTH_2026-10-13.md).

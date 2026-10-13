@@ -96,3 +96,16 @@ Delay. Real music, long tails at high feedback, and device listening remain open
 ## 2026-10-06: Synthetic gain boundary fixture
 
 `tests/chain-gain.mjs` passes six reorder cases (three chains, playing/internal pause): reversing then restoring order before processing preserves the next 4096 stereo frames exactly. Processing reversed orders remains finite. Six 48k dry-tone amplitude cases confirm Preview/Render equality below final normalization and the documented Render-only scale above it (peak 0.995 to 0.98, -0.13194 dB; scale-adjusted error < 3.2e-8). No gain/limiter policy was changed. These are engine measurements, not reorder-click listening, all-permutation coverage, or device performance certification. The local bypass/reset fix is ready for a scoped commit and deployment; neither was performed in this step.
+
+## Band Pass Width correction — 2026-10-13
+Width now spans narrow-to-wide filtering, with unity center gain and no hidden
+full-width bypass. UI shows percentage and Q. This deliberately changes old
+Band Pass output; listening approval remains pending.
+[Contract, compatibility and measurements](BANDPASS_WIDTH_2026-10-13.md).
+
+## Delay / Depth limits — 2026-10-13
+Flanger and Chorus now limit the effective sine amplitude to the smoothed Delay
+minus the minimum read delay (.25 ms / 5 ms). They no longer clip the bottom
+of the LFO sweep for excessive Depth. Requested values and defaults remain;
+limited values show requested → effective depth in the readout.
+[Contract, compatibility and verification](MODULATION_DEPTH_2026-10-13.md).

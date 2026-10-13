@@ -673,6 +673,7 @@ button:disabled {
   color: #f1ffe8;
 }
 
+#flangerMixParam.active,
 #chorusMixParam.active,
 #delayMixParam.active {
   border-color: #6fa8dc;
