@@ -195,3 +195,11 @@ An actual replacement file selection revokes the previous WAV URL before decode,
 Stop and actual source replacement invalidate a pending Play even before the AudioWorklet node exists. Stop now advances the playback token unconditionally, and Play checks the captured token after asynchronous engine preparation. Forced Stop follows the same rule where present. Explicit Play after cancellation remains available. No-file chooser cancellation and each Lab's existing failed-import policy are preserved. DSP, curve semantics, and export format are unchanged.
 
 Regression: tests/initial-play-cancel.mjs invokes actual application handlers with delayed engine preparation. Old code failed the Stop case; corrected code passes Stop, forced Stop where present, successful source replacement, and explicit retry. This proves request cancellation, not cold-start speed or physical audio onset. Standalone should preserve the same invalidation rule across asynchronous engine setup.
+
+
+## Waveform above curves (2026-10-13)
+
+The existing output-time/source-guide waveform now appears above the curve editing
+canvas, following the shared Curve Lab reading order. Its source-guide meaning,
+click/drag/keyboard seek, parameter IDs, normalized curves and DSP remain unchanged.
+This is a layout change only; Audio's output deletion/fades are not added here.

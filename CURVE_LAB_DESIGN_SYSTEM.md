@@ -88,3 +88,11 @@ Focus #F9E49B and hover #F7D972 are web derivatives, not suite brand colors.
 Download WAV uses a dark accent-derived fill to keep light text legible.
 Effect colors, including Delay Time Gold #F2B705, remain independent and unchanged.
 Details and source hashes: `docs/IDENTITY_PILOT.md`, `assets/identity/palette.json`.
+
+
+## Waveform above curves (2026-10-13)
+
+The existing output-time/source-guide waveform now appears above the curve editing
+canvas, following the shared Curve Lab reading order. Its source-guide meaning,
+click/drag/keyboard seek, parameter IDs, normalized curves and DSP remain unchanged.
+This is a layout change only; Audio's output deletion/fades are not added here.

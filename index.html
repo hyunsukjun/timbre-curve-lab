@@ -94,15 +94,16 @@
             <strong id="downloadReadout">not ready</strong>
           </div>
         </div>
-        <div class="canvasFrame">
-          <canvas id="waveCanvas" width="1400" height="620"></canvas>
-        </div>
         <div class="outputWaveFrame">
           <canvas id="outputWaveCanvas" width="1400" height="96" role="slider" tabindex="0"
             aria-label="Output time position on the original source waveform. Click or drag to seek; effect tails are not shown"
             aria-valuemin="0" aria-valuemax="100" aria-valuenow="0" aria-disabled="true"
             title="Source waveform, not processed audio. Delay tails are not shown. Click or drag to seek."></canvas>
         </div>
+        <div class="canvasFrame">
+          <canvas id="waveCanvas" width="1400" height="620"></canvas>
+        </div>
+
         <div class="chainLabel">Signal Chain</div>
         <div id="chainDiagram" class="chainDiagram" aria-label="Current effect order"></div>
       </section>
