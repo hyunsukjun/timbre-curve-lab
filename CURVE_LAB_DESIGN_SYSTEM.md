@@ -132,3 +132,7 @@ legend and tooltip distinguish original-to-comb blending from delayed-only Mix.
 ## Effective Depth readout — 2026-10-13
 Keep requested-depth axes and curves. When limited by Delay, append the actual
 effective depth in milliseconds to the readout, with explanatory tab tooltip.
+
+
+## 2026-10-14 — Common Clear Current / Reset All appearance
+Both actions follow Audio's neutral navy reference: background #122438, text #aabccc, 6px radius, 13px/620 type, 92px minimum width, 38px height (30px at >=900px viewport width). Clear border #3b5063; Reset border #203a52. Shared hover/pressed/focus/disabled styles live in src/curve-actions.css. Red action emphasis is removed; brand/parameter colors elsewhere stay independent. Existing IDs, handlers, reset scope, confirmation mechanism and keyboard behavior remain unchanged. This is a local visual update, separate from DSP verification.
