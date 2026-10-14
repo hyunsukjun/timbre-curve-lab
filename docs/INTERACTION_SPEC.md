@@ -256,3 +256,10 @@ limited values show requested → effective depth in the readout.
 At viewport width >=900px and height >=650px, the app uses the available viewport height. The curve frame flexes as parameter controls appear, Signal Chain remains a single horizontally scrollable row, and transport participates in the layout instead of requiring a large fixed-footer spacer. Source waveform retains 96px height. Smaller windows retain scrolling for access rather than hiding controls. DSP, parameter IDs, curves, and chain ordering are unchanged.
 
 Browser verification at 1422x800, all seven effects enabled and Delay parameters visible: document height 800px (previously 903px), transport bottom 790px, curve height about237px, no console errors. Other viewport sizes and Safari remain unverified; requested viewport override did not change the measured viewport. Local only, not committed/deployed.
+
+
+## 2026-10-14 — Family file information
+
+Approved circular dotted-i disclosure immediately left of Open Audio. Default format guidance moves into this optional panel; privacy and actual error/status notices remain. Space operates disclosure without audio transport; Escape/outside click dismiss. Output guidance: Source up to 3 min, plus effect tail · Stereo · 48 kHz / 24-bit WAV. Input limits reflect current implementation, not a device-memory guarantee. No DSP, admission, export, IDs or defaults changed.
+
+Family verification: all six information panels passed desktop/narrow bounds and Space/Escape/outside-click checks; shared keyboard regression 27/27 passed. Existing dynamic errors and audio handlers unchanged. User approved commit and publication on 2026-10-14. Release evidence in family FILE_HELP_2026-10-14.md. Earlier Audio-only pilot status is superseded.
