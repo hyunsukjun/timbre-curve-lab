@@ -1858,43 +1858,43 @@ function updateEffectButtons() {
   lowpassMode.classList.toggle("bypassed", !effects.lowpass.enabled);
   lowpassMode.classList.toggle("active", activeEffect === "lowpass");
   lowpassMode.setAttribute("aria-pressed", String(effects.lowpass.enabled));
-  lowpassMode.title = effects.lowpass.enabled ? "Low Pass is active" : "Low Pass is bypassed";
+  lowpassMode.dataset.helpState = effects.lowpass.enabled ? "Low Pass is active" : "Low Pass is bypassed";
 
   highpassMode.classList.toggle("enabled", effects.highpass.enabled);
   highpassMode.classList.toggle("bypassed", !effects.highpass.enabled);
   highpassMode.classList.toggle("active", activeEffect === "highpass");
   highpassMode.setAttribute("aria-pressed", String(effects.highpass.enabled));
-  highpassMode.title = effects.highpass.enabled ? "High Pass is active" : "High Pass is bypassed";
+  highpassMode.dataset.helpState = effects.highpass.enabled ? "High Pass is active" : "High Pass is bypassed";
 
   bandpassMode.classList.toggle("enabled", effects.bandpass.enabled);
   bandpassMode.classList.toggle("bypassed", !effects.bandpass.enabled);
   bandpassMode.classList.toggle("active", activeEffect === "bandpass");
   bandpassMode.setAttribute("aria-pressed", String(effects.bandpass.enabled));
-  bandpassMode.title = effects.bandpass.enabled ? "Band Pass is active" : "Band Pass is bypassed";
+  bandpassMode.dataset.helpState = effects.bandpass.enabled ? "Band Pass is active" : "Band Pass is bypassed";
 
   combMode.classList.toggle("enabled", effects.comb.enabled);
   combMode.classList.toggle("bypassed", !effects.comb.enabled);
   combMode.classList.toggle("active", activeEffect === "comb");
   combMode.setAttribute("aria-pressed", String(effects.comb.enabled));
-  combMode.title = effects.comb.enabled ? "Comb is active" : "Comb is bypassed";
+  combMode.dataset.helpState = effects.comb.enabled ? "Comb is active" : "Comb is bypassed";
 
   flangerMode.classList.toggle("enabled", effects.flanger.enabled);
   flangerMode.classList.toggle("bypassed", !effects.flanger.enabled);
   flangerMode.classList.toggle("active", activeEffect === "flanger");
   flangerMode.setAttribute("aria-pressed", String(effects.flanger.enabled));
-  flangerMode.title = effects.flanger.enabled ? "Flanger is active" : "Flanger is bypassed";
+  flangerMode.dataset.helpState = effects.flanger.enabled ? "Flanger is active" : "Flanger is bypassed";
 
   chorusMode.classList.toggle("enabled", effects.chorus.enabled);
   chorusMode.classList.toggle("bypassed", !effects.chorus.enabled);
   chorusMode.classList.toggle("active", activeEffect === "chorus");
   chorusMode.setAttribute("aria-pressed", String(effects.chorus.enabled));
-  chorusMode.title = effects.chorus.enabled ? "Chorus is active" : "Chorus is bypassed";
+  chorusMode.dataset.helpState = effects.chorus.enabled ? "Chorus is active" : "Chorus is bypassed";
 
   delayMode.classList.toggle("enabled", effects.delay.enabled);
   delayMode.classList.toggle("bypassed", !effects.delay.enabled);
   delayMode.classList.toggle("active", activeEffect === "delay");
   delayMode.setAttribute("aria-pressed", String(effects.delay.enabled));
-  delayMode.title = effects.delay.enabled ? "Delay is active" : "Delay is bypassed";
+  delayMode.dataset.helpState = effects.delay.enabled ? "Delay is active" : "Delay is bypassed";
 
   const showsBandParams = activeEffect === "bandpass";
   const showsCombParams = activeEffect === "comb";
