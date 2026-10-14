@@ -408,10 +408,24 @@ function renderChainDiagram() {
     block.dataset.effect = name;
     block.className = `effectModule enabled chainBlock ${effectClassName(name)}`;
     block.textContent = effectLabel(name);
-    block.title = "Drag to reorder this filter in the visual chain";
+    block.title = "Drag to reorder; keyboard: Alt + Left/Right arrow";
 
     block.addEventListener("click", () => {
       setActiveCurve(defaultCurveForEffect(name));
+    });
+
+    block.addEventListener("keydown", (event) => {
+      if (!event.altKey || event.ctrlKey || event.metaKey || !["ArrowLeft", "ArrowRight"].includes(event.key)) return;
+      event.preventDefault();
+      event.stopPropagation();
+      const index = chainOrder.indexOf(name);
+      const nextIndex = index + (event.key === "ArrowLeft" ? -1 : 1);
+      if (index < 0 || nextIndex < 0 || nextIndex >= chainOrder.length) return;
+      [chainOrder[index], chainOrder[nextIndex]] = [chainOrder[nextIndex], chainOrder[index]];
+      markDownloadStale();
+      sendSettings();
+      renderChainDiagram();
+      chainDiagram.querySelector(`[data-effect="${name}"]`)?.focus();
     });
 
     block.addEventListener("dragstart", (event) => {

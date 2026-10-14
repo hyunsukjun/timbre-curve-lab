@@ -268,3 +268,11 @@ Family verification: all six information panels passed desktop/narrow bounds and
 ## 2026-10-14 — Family parameter help
 
 Static parameter descriptions are available on the relevant buttons using the Audio help design; current values, axes and activation feedback remain visible. See `docs/PARAMETER_HELP.md` (or `PARAMETER_HELP.md` in this directory). No DSP or curve mapping changes.
+
+
+## 2026-10-14 — Chain keyboard access
+Signal Chain block에 포커스한 상태에서 Alt(Option)+좌/우 방향키로 한 칸 이동한다. 양 끝에서는 유지하며 재배치 후 같은 블록에 포커스를 복원한다. 기존 드래그와 동일한 설정 전달/출력 갱신 경로를 사용한다. DSP·커브·효과 On/Off 정책은 변경하지 않는다.
+
+
+## 2026-10-14 — Open Audio keyboard access
+파일 입력을 display:none 대신 시각적으로만 숨겨 Tab과 Enter/Space로 기본 파일 선택기에 접근하도록 수정. 포커스는 기존 fileButton:focus-within 윤곽선으로 표시한다. 파일 디코딩·처리 계약은 변경하지 않는다.
