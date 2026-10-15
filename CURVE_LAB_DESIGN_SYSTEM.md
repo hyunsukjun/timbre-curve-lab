@@ -246,3 +246,12 @@ COMMON CANDIDATE, Audio-approved visual direction. Shared typography.css gives o
 Commit/deployment withheld for user preview. Native confirmation keyboard and comparative listening remain deferred.
 
 Validation follow-up: default wide layout and narrow354px(Timbre)/390px(other Labs) no horizontal overflow or button clipping; representative active effect/mode colors and400 weight verified, chain enabled colors retained. Basic Play/Pause/rewind confirmed for Timbre/Space/Spectral/Oscillator; Granular no-file disabled state and mode selection checked, no real-file playback repeated. Console errors none; app syntax/diff checks passed. Native zoom not repeated for these five changes. Evidence: shared QA type-family-audit.json and type-family-*-390.png.
+
+## Source-tone waveform — 2026-10-15 (COMMON CANDIDATE, review pending)
+- Original input waveform only; effects and tails are not represented by its color. Shared Audio palette: blue → teal → gold → peach, approximate magnitude spectral centroid150–8000Hz on a logarithmic scale. Not pitch, clipping or processed-output analysis.
+- Signed16000-bin extrema and physical-pixel envelope retain narrow peaks. Display height uses one shared peak reference across channels, preserving relative stereo levels without the former flattened peaks. Audio samples/gain are unchanged.
+- Bounded worker samples at most1024 windows×1024samples×2channels; at most8MiB copied. Long inputs are sampled and short events can be missed. Worker failure falls back to blue; replacement terminates the prior analysis.
+- Static waveform is cached across cursor/playback draws, invalidated by source, color result, size and pixel ratio. Mono/stereo lane count and source seeking remain unchanged. No dependency or DSP changes.
+- Browser: demo stereo import, Low Pass selection, curve point creation, waveform seek, Play/Pause and actual WAV save passed. Saved10s/stereo/48k/24bit. Native Brave125%/150% checked with900×700 window (720×560 and600×466 CSS viewports); vertical scroll needed at150%, no horizontal overflow, transport accessible.
+- Syntax, source-color/immutable extrema, transport parity and keyboard suites passed. File-replacement-export test updated for current import/status contracts; replacement, decode failure, chooser cancellation and retry pass. No listening approval or low-spec certification.
+- Preview approved for release; file-replacement test maintenance is test-only.

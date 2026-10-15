@@ -323,3 +323,12 @@ Commit/deployment withheld for user preview. Native confirmation keyboard and co
 - Approved typography refinement verified in Brave actual 125% (1189×609 CSS px, DPR 2.5) and 150% (990×508 CSS px, DPR 3). No document horizontal overflow or clipped button labels; transport remains reachable by vertical scrolling.
 - Existing narrow-screen and representative parameter/playback checks retained. Granular additionally imported recovery-8s-test.wav via the native file picker: playback/meter activity, pause, resume from position, and rewind verified.
 - Scope is presentation only. Native confirmation keyboard behavior and comparative listening remain deferred; this does not claim new DSP/export or cross-device certification.
+
+## Source-tone waveform — 2026-10-15 (COMMON CANDIDATE, review pending)
+- Original input waveform only; effects and tails are not represented by its color. Shared Audio palette: blue → teal → gold → peach, approximate magnitude spectral centroid150–8000Hz on a logarithmic scale. Not pitch, clipping or processed-output analysis.
+- Signed16000-bin extrema and physical-pixel envelope retain narrow peaks. Display height uses one shared peak reference across channels, preserving relative stereo levels without the former flattened peaks. Audio samples/gain are unchanged.
+- Bounded worker samples at most1024 windows×1024samples×2channels; at most8MiB copied. Long inputs are sampled and short events can be missed. Worker failure falls back to blue; replacement terminates the prior analysis.
+- Static waveform is cached across cursor/playback draws, invalidated by source, color result, size and pixel ratio. Mono/stereo lane count and source seeking remain unchanged. No dependency or DSP changes.
+- Browser: demo stereo import, Low Pass selection, curve point creation, waveform seek, Play/Pause and actual WAV save passed. Saved10s/stereo/48k/24bit. Native Brave125%/150% checked with900×700 window (720×560 and600×466 CSS viewports); vertical scroll needed at150%, no horizontal overflow, transport accessible.
+- Syntax, source-color/immutable extrema, transport parity and keyboard suites passed. File-replacement-export test updated for current import/status contracts; replacement, decode failure, chooser cancellation and retry pass. No listening approval or low-spec certification.
+- Preview approved for release; file-replacement test maintenance is test-only.

@@ -1,3 +1,5 @@
+import { analyzeSourceColors, toneColor } from "./source-colors.js";
+import { summarizeChannels } from "./source-envelope.js";
 import {mountTransport} from "./common-transport.js?v=20261013-1";
 import { readAudioFile } from "./audio-import.js?v=20261011-aiff1";
 import { OutputMeterAnalyzer } from "./output-meter.js?v=20260930-02";
@@ -126,6 +128,7 @@ let outputMeter;
 let workletBufferLoaded = false;
 let buffer;
 let waveform = [];
+let sourceColors = null, sourceRaster = null;
 let outputWaveCssWidth = 1;
 let outputWaveCssHeight = 96;
 let outputHoverProgress = null;
@@ -1302,54 +1305,86 @@ function drawCurves() {
   drawCurve(activeCurve, curves[activeCurve], curveColors[activeCurve], 4.8, true);
 }
 
+function paintSourceRaster(ctx,w,h,plotW,scale) {
+  ctx.setTransform(scale, 0, 0, scale, 0, 0);
+  ctx.fillStyle = "#191c20";
+  ctx.fillRect(0, 0, w, h);
+
+  ctx.strokeStyle = "rgba(139, 149, 162, 0.18)";
+  ctx.lineWidth = 1;
+  const divisions = plotW < 680 ? 4 : 10;
+  for (let i = 0; i <= divisions; i += 1) {
+    const x = axisWidth + (i / divisions) * plotW;
+    ctx.beginPath();
+    ctx.moveTo(x, 21);
+    ctx.lineTo(x, h - 19);
+    ctx.stroke();
+  }
+
+  ctx.fillStyle = "#a9b1bb";
+  ctx.font = "11px sans-serif";
+  ctx.textBaseline = "middle";
+  ctx.fillText("Output Time", 10, 12);
+  const hintX = Math.max(axisWidth + 10, 18 + ctx.measureText("Output Time").width + 8);
+  const label = w > 760 ? "Source waveform · Effect tail not shown" : "Source";
+  ctx.fillText(label, hintX, 12);
+  if(w > 460){
+    const g=ctx.createLinearGradient(w-66,0,w-8,0);
+    g.addColorStop(0,toneColor(150));g.addColorStop(.5,toneColor(1100));g.addColorStop(1,toneColor(8000));
+    ctx.fillStyle=g;ctx.fillRect(w-66,9,58,5);
+    ctx.fillStyle='#a9b1bb';ctx.textAlign='right';ctx.fillText('Source tone',w-72,12);ctx.textAlign='start';
+  }
+  if (!buffer || !waveform.length) return;
+  const stereo = waveform.length > 1;
+  const laneCenters = stereo ? [39, 63] : [51];
+  let referencePeak=.00001;for(const lane of waveform)for(const value of lane)referencePeak=Math.max(referencePeak,value);
+  for (let channel=0;channel<waveform.length;channel++) {
+    const peaks=waveform[channel],mid=laneCenters[channel],maxAmplitude=stereo?10:22;
+    const spectrum=sourceColors?.[channel];
+    ctx.fillStyle='#8bc9ff';
+    if(spectrum?.length){
+      const g=ctx.createLinearGradient(axisWidth,0,w,0),n=Math.min(256,spectrum.length);
+      for(let i=0;i<Math.max(2,n);i++){const t=i/(Math.max(2,n)-1);g.addColorStop(t,toneColor(spectrum[Math.min(spectrum.length-1,Math.floor(t*spectrum.length))]));}
+      ctx.fillStyle=g;
+    }
+    const columns=Math.max(1,Math.ceil(plotW*scale)),hi=new Float32Array(columns),lo=new Float32Array(columns);
+    for(let x=0;x<columns;x++){
+      const a=Math.floor(x/columns*peaks.length),b=Math.min(peaks.length,Math.max(a+1,Math.ceil((x+1)/columns*peaks.length)));
+      let mn=0,mx=0;for(let i=a;i<b;i++){mn=Math.min(mn,peaks.minimum[i]);mx=Math.max(mx,peaks.maximum[i]);}
+      hi[x]=mid-Math.min(maxAmplitude,mx/referencePeak*maxAmplitude);lo[x]=mid-Math.max(-maxAmplitude,mn/referencePeak*maxAmplitude);
+    }
+    ctx.beginPath();ctx.moveTo(axisWidth,mid);
+    for(let x=0;x<columns;x++)ctx.lineTo(axisWidth+(x+.5)*plotW/columns,hi[x]);
+    for(let x=columns-1;x>=0;x--)ctx.lineTo(axisWidth+(x+.5)*plotW/columns,lo[x]);
+    ctx.closePath();ctx.fill();
+  }
+  ctx.fillStyle = "#a9b1bb";
+  ctx.fillText(stereo ? "L" : "MONO", 11, laneCenters[0]);
+  if (stereo) ctx.fillText("R", 11, laneCenters[1]);
+  for (let i = 0; i <= divisions; i += 1) {
+    ctx.textAlign = i === 0 ? "left" : i === divisions ? "right" : "center";
+    ctx.fillText(formatTime(buffer.duration * i / divisions), axisWidth + (i / divisions) * plotW, h - 8);
+  }
+  ctx.textAlign = "start";
+
+}
+
 function drawOutputWaveform() {
   const w = outputWaveCssWidth;
   const h = outputWaveCssHeight;
   const plotW = Math.max(1, w - axisWidth);
   const scale = window.devicePixelRatio || 1;
-  outputWaveCtx.setTransform(scale, 0, 0, scale, 0, 0);
-  outputWaveCtx.fillStyle = "#191c20";
-  outputWaveCtx.fillRect(0, 0, w, h);
-
-  outputWaveCtx.strokeStyle = "rgba(139, 149, 162, 0.18)";
-  outputWaveCtx.lineWidth = 1;
-  const divisions = plotW < 680 ? 4 : 10;
-  for (let i = 0; i <= divisions; i += 1) {
-    const x = axisWidth + (i / divisions) * plotW;
-    outputWaveCtx.beginPath();
-    outputWaveCtx.moveTo(x, 21);
-    outputWaveCtx.lineTo(x, h - 19);
-    outputWaveCtx.stroke();
+  const key=`${w}:${h}:${outputWaveCanvas.width}:${outputWaveCanvas.height}:${scale}`;
+  if(!sourceRaster || sourceRaster.key!==key || sourceRaster.waveform!==waveform || sourceRaster.colors!==sourceColors){
+    const image=document.createElement('canvas');image.width=outputWaveCanvas.width;image.height=outputWaveCanvas.height;
+    paintSourceRaster(image.getContext('2d'),w,h,plotW,scale);
+    sourceRaster={key,waveform,colors:sourceColors,image};
   }
-
-  outputWaveCtx.fillStyle = "#a9b1bb";
-  outputWaveCtx.font = "11px sans-serif";
-  outputWaveCtx.textBaseline = "middle";
-  outputWaveCtx.fillText("Output Time", 10, 12);
-  const hintX = Math.max(axisWidth + 10, 18 + outputWaveCtx.measureText("Output Time").width + 8);
-  outputWaveCtx.fillText(w > 640 ? "Source waveform · Effect tail not shown" : "Source", hintX, 12);
-
-  if (!buffer || !waveform.length) return;
-  const stereo = waveform.length > 1;
-  const laneCenters = stereo ? [39, 63] : [51];
-  outputWaveCtx.fillStyle = "rgba(146, 171, 190, 0.86)";
-  for (let channel = 0; channel < waveform.length; channel += 1) {
-    const peaks = waveform[channel];
-    const mid = laneCenters[channel];
-    for (let x = 0; x < plotW; x += 1) {
-      const index = Math.min(peaks.length - 1, Math.floor(x / plotW * peaks.length));
-      const amplitude = Math.min(stereo ? 10 : 22, (peaks[index] || 0) * 45);
-      outputWaveCtx.fillRect(axisWidth + x, mid - amplitude, 1, Math.max(1, amplitude * 2));
-    }
-  }
-  outputWaveCtx.fillStyle = "#a9b1bb";
-  outputWaveCtx.fillText(stereo ? "L" : "MONO", 11, laneCenters[0]);
-  if (stereo) outputWaveCtx.fillText("R", 11, laneCenters[1]);
-  for (let i = 0; i <= divisions; i += 1) {
-    outputWaveCtx.textAlign = i === 0 ? "left" : i === divisions ? "right" : "center";
-    outputWaveCtx.fillText(formatTime(buffer.duration * i / divisions), axisWidth + (i / divisions) * plotW, h - 8);
-  }
-  outputWaveCtx.textAlign = "start";
+  outputWaveCtx.setTransform(1,0,0,1,0,0);
+  outputWaveCtx.clearRect(0,0,outputWaveCanvas.width,outputWaveCanvas.height);
+  outputWaveCtx.drawImage(sourceRaster.image,0,0);
+  outputWaveCtx.setTransform(scale,0,0,scale,0,0);
+  if(!buffer || !waveform.length)return;
 
   const markerColor = "#e6edf1";
   if (!isWaveSeeking && outputHoverProgress !== null) {
@@ -1477,19 +1512,9 @@ function draw() {
 }
 
 function buildWaveform(audioBuffer) {
-  const buckets = 4000;
-  waveform = Array.from({ length: Math.min(2, audioBuffer.numberOfChannels) }, (_, channelIndex) => {
-    const channel = audioBuffer.getChannelData(channelIndex);
-    const peaks = new Float32Array(buckets);
-    for (let i = 0; i < buckets; i += 1) {
-      let peak = 0;
-      const start = Math.floor(i * channel.length / buckets);
-      const end = Math.floor((i + 1) * channel.length / buckets);
-      for (let j = start; j < end; j += 1) peak = Math.max(peak, Math.abs(channel[j]));
-      peaks[i] = peak;
-    }
-    return peaks;
-  });
+  sourceColors=null;sourceRaster=null;
+  waveform=summarizeChannels(Array.from({length:Math.min(2,audioBuffer.numberOfChannels)},(_,c)=>audioBuffer.getChannelData(c)));
+  analyzeSourceColors(audioBuffer,colors=>{if(buffer===audioBuffer){sourceColors=colors;drawOutputWaveform();}});
 }
 
 function createWhiteNoiseIntervalBuffer(sampleRate) {
