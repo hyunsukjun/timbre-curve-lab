@@ -282,3 +282,14 @@ Signal Chain block에 포커스한 상태에서 Alt(Option)+좌/우 방향키로
 Selected parameter name/value stays visible; statistics and full value overview are disclosed on demand. WAV status belongs beside Download. All original readout IDs and update sources retained. Playing: existing engine telemetry; stopped: existing curve target/effective-depth formatting at playhead. No filter selected stays --.
 
 Details Space key is isolated from transport. Source/output distinction, off/enabled state and channel information must not be erased by family visual consistency. This is a COMMON CANDIDATE / STANDALONE ASSET pending visual approval; no commit/deploy.
+
+## Timbre visual parity refinement
+See FUNCTIONAL_SURFACE_CONTRACT.md for exact surface and transport values. Idle export status and chain heading removed; active export progress/errors remain visible. No audio or timeline semantics changed.
+
+Timbre review correction: Details disclosure removed; original Curve/Points/Engine/Value readouts always visible. Value basis remains preview engine while playing and curve target at playhead while stopped.
+
+## Readout disclosure rollback — 2026-10-15
+User requested removal of the newly introduced Details disclosures across the family. Original always-visible readout panels restored; Oscillator retains its pre-existing Synthesis detail panel and original contents. Value computation and audio behavior unchanged. Do not add disclosure or restructure information during color/minor-UI work. Audio also removes the border above EDIT AUDIO.
+
+## Export feedback visibility
+Idle WAV ready/not ready/needs export badges are hidden. The Download control retains its normal state. Progress, cancellation, limits and failure feedback remain visible; status values are not audio-engine inputs.

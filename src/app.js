@@ -48,6 +48,12 @@ const delayMixParam = document.getElementById("delayMixParam");
 const parameterLegend = document.getElementById("parameterLegend");
 const cutoffReadout = document.getElementById("cutoffReadout");
 const downloadReadout = document.getElementById("downloadReadout");
+function setExportStatus(message) {
+  const passive = ["ready", "not ready", "needs export"].includes(message);
+  downloadReadout.textContent = passive ? "" : message;
+  downloadReadout.parentElement.hidden = passive;
+}
+
 const modeReadout = document.getElementById("modeReadout");
 const pointsReadout = document.getElementById("pointsReadout");
 const meterRows = Array.from(document.querySelectorAll("[data-meter-channel]"));
@@ -828,7 +834,7 @@ function markDownloadStale() {
     URL.revokeObjectURL(downloadUrl);
     downloadUrl = null;
   }
-  downloadReadout.textContent = "needs export";
+  setExportStatus("needs export");
 }
 
 function clearDownload() {
@@ -1302,7 +1308,7 @@ function drawOutputWaveform() {
   const plotW = Math.max(1, w - axisWidth);
   const scale = window.devicePixelRatio || 1;
   outputWaveCtx.setTransform(scale, 0, 0, scale, 0, 0);
-  outputWaveCtx.fillStyle = "#191c20";
+  outputWaveCtx.fillStyle = "#252c32";
   outputWaveCtx.fillRect(0, 0, w, h);
 
   outputWaveCtx.strokeStyle = "rgba(139, 149, 162, 0.18)";
@@ -1316,7 +1322,7 @@ function drawOutputWaveform() {
     outputWaveCtx.stroke();
   }
 
-  outputWaveCtx.fillStyle = "#9bb4c9";
+  outputWaveCtx.fillStyle = "#a9b1bb";
   outputWaveCtx.font = "11px sans-serif";
   outputWaveCtx.textBaseline = "middle";
   outputWaveCtx.fillText("OUTPUT TIME", 10, 12);
@@ -1336,7 +1342,7 @@ function drawOutputWaveform() {
       outputWaveCtx.fillRect(axisWidth + x, mid - amplitude, 1, Math.max(1, amplitude * 2));
     }
   }
-  outputWaveCtx.fillStyle = "#9bb4c9";
+  outputWaveCtx.fillStyle = "#a9b1bb";
   outputWaveCtx.fillText(stereo ? "L" : "MONO", 11, laneCenters[0]);
   if (stereo) outputWaveCtx.fillText("R", 11, laneCenters[1]);
   for (let i = 0; i <= divisions; i += 1) {
@@ -1468,7 +1474,6 @@ function draw() {
     : "--";
   modeReadout.textContent = activeCurve ? curveLabels[activeCurve] : "No Filter Selected";
   pointsReadout.textContent = activeCurve ? String(curves[activeCurve].length) : "0";
-  document.querySelector(".valueStrip .valueBasis").textContent = isPlaying ? "Playback" : "At playhead";
 }
 
 function buildWaveform(audioBuffer) {
@@ -1533,7 +1538,7 @@ function useAudioBuffer(nextBuffer, label) {
   sendBufferToWorklet();
   fileStatus.textContent = `${label} - ${buffer.duration.toFixed(2)} s`;
   clearDownload();
-  downloadReadout.textContent = "ready";
+  setExportStatus("ready");
   playheadSeconds = 0;
   setTransportBusy(false);
   draw();
@@ -1553,7 +1558,7 @@ async function loadDefaultWhiteNoise() {
   } catch (error) {
     console.error(error);
     fileStatus.textContent = "Open an audio file to begin.";
-    downloadReadout.textContent = "not ready";
+    setExportStatus("not ready");
     buffer = null;
     draw();
   }
@@ -1657,7 +1662,7 @@ async function loadAudioFile(file) {
   }
   setTransportBusy(true);
   fileStatus.textContent = `Loading ${file.name}...`;
-  downloadReadout.textContent = "loading";
+  setExportStatus("loading");
   playButton.textContent = "Play";
   isPlaying = false;
   const stopToken = nextPlaybackToken();
@@ -1673,13 +1678,13 @@ async function loadAudioFile(file) {
     const longFileNote = buffer.duration > largeFileSeconds ? " - long file" : "";
     fileStatus.textContent = `${file.name} - ${buffer.duration.toFixed(2)} s${longFileNote}`;
     clearDownload();
-    downloadReadout.textContent = buffer.duration > largeFileSeconds ? "export limit: 180 s" : "ready";
+    setExportStatus(buffer.duration > largeFileSeconds ? "export limit: 180 s" : "ready");
     playheadSeconds = 0;
     draw();
   } catch (error) {
     console.error(error);
     fileStatus.textContent = error.message?.startsWith("AIFF:") ? error.message : "Could not load audio. Try WAV, MP3, or M4A.";
-    downloadReadout.textContent = "not ready";
+    setExportStatus("not ready");
     buffer = null;
     waveform = [];
     playheadSeconds = 0;
@@ -1779,7 +1784,7 @@ downloadButton.addEventListener("click", async () => {
 
   renderAbortController = new AbortController();
   setRenderBusy(true);
-  downloadReadout.textContent = "creating 0%";
+  setExportStatus("creating 0%");
   downloadButton.textContent = "Cancel";
   clearDownload();
 
@@ -1792,7 +1797,7 @@ downloadButton.addEventListener("click", async () => {
       settings: getSettings(),
       signal: renderAbortController.signal,
       onProgress: (progress) => {
-        downloadReadout.textContent = `creating ${Math.round(progress * 100)}%`;
+        setExportStatus(`creating ${Math.round(progress * 100)}%`);
       }
     });
 
@@ -1803,17 +1808,17 @@ downloadButton.addEventListener("click", async () => {
     document.body.appendChild(link);
     link.click();
     link.remove();
-    downloadReadout.textContent = rendered.truncated
+    setExportStatus(rendered.truncated
       ? `${rendered.duration.toFixed(1)} s, capped`
-      : `${rendered.duration.toFixed(1)} s`;
+      : `${rendered.duration.toFixed(1)} s`);
   } catch (error) {
     if (error.name === "AbortError") {
-      downloadReadout.textContent = "cancelled";
+      setExportStatus("cancelled");
     } else if (error.code === "EXPORT_DURATION_LIMIT") {
-      downloadReadout.textContent = error.message;
+      setExportStatus(error.message);
     } else {
       console.error(error);
-      downloadReadout.textContent = "export failed";
+      setExportStatus("export failed");
     }
   } finally {
     renderAbortController = null;

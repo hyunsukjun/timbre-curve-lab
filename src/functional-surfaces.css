@@ -1,0 +1,27 @@
+/* Functional surfaces: shared upper controls, independent waveform/analysis area. */
+:root { --family-header: #373b43; --family-wave: #252c32; --family-curve: #191c20; --family-transport: #30343c; }
+.topbar,.legend,.effectBar,.parameterBar,.parameterLegend,.controlBand,.sourceBand,.impulseBand,.durationPanel,.roomControls,.valueStrip,.voiceDetails,.modulationInfo { background:var(--family-header); border-color:transparent; }
+.valueDetails .panel,.voiceDetails .panel { background:transparent; }
+.outputWaveFrame,.timelineFrame,.sourceFrame,.frequencyFrame { background:var(--family-wave); }
+.canvasFrame.curveFrame { background:var(--family-curve); }
+.playbackBar,.playbackDock { background:var(--family-transport); }
+
+/* Timbre parity pass: Audio transport surfaces, no legacy navy fragments. */
+.app > .playbackBar { margin:0; padding-inline:20px; border:0; border-top:1px solid #4a525e; border-radius:0; background:var(--family-transport); }
+.bottomTransport { background:#292f37; border-color:#596472; }
+.bottomTransport button { background:transparent; box-shadow:none; }
+#playButton:hover,#stopButton:hover,#rewindButton:hover { background:#343a42; color:#eef1f4; border-color:#596472; }
+#playButton[aria-pressed="true"] { background:#5c6978; color:#eef1f4; }
+#rewindButton { border-right-color:#596472; }
+#playbackScrubber { background:linear-gradient(to right,#459bff 0% var(--progress,0%),#8290a1 var(--progress,0%) 100%) center / 100% 6px no-repeat; }
+.playbackBar .outputMeter { border-left:0; }
+.playbackBar .meterTrack::after { display:none; }
+.playbackBar .meterHold { background:#f4f7fb; }
+.playbackBar .meterClip:not(.clipped) { color:#b3becc; background:#262e38; border-color:#5c6878; }
+.playbackBar .meterClip:not(.clipped):hover { color:#eef3fa; background:#3b4654; }
+.exportStatus[hidden] { display:none; }
+@media(max-width:600px) { .app > .playbackBar { padding-inline:10px; } }
+
+/* Preserve the original visible readouts; no new disclosure in the color pass. */
+.curveActions { border-left:0; }
+.currentValues { background:var(--family-header); border:0; }

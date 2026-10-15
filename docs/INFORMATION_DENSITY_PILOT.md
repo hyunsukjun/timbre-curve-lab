@@ -1,3 +1,7 @@
+> Superseded: the new readout disclosures/compact strip were reverted by user request. Original presentation restored; see INTERACTION_SPEC.md.
+
+> Superseded for Timbre: user requested the original always-visible readouts during the functional-color review. Details disclosure is removed; value calculations remain unchanged. See FUNCTIONAL_SURFACE_CONTRACT.md.
+
 # Information density pilot
 
 ## Information-density pilot — local review, 2026-10-15

@@ -14,7 +14,8 @@
     <link rel="stylesheet" href="src/studio-theme.css?v=20261015-family1">
     <link rel="stylesheet" href="src/button-states.css?v=20261015-2">
   <link rel="stylesheet" href="src/value-strip.css?v=20261015-1">
-</head>
+  <link rel="stylesheet" href="src/functional-surfaces.css?v=20261015-timbre3">
+  </head>
   <body>
     <main class="app">
       <header class="topbar">
@@ -45,7 +46,7 @@
             Open Audio
             <input id="fileInput" type="file" accept="audio/*,.aif,.aiff,.aifc">
           </label>
-          <span class="exportStatus" role="status" aria-label="WAV export status">WAV <strong id="downloadReadout">not ready</strong></span>
+          <span class="exportStatus" role="status" aria-label="Export status" hidden><strong id="downloadReadout"></strong></span>
 <button id="downloadButton" type="button" disabled title="Source up to 3 min, plus effect tail · Stereo · 48 kHz / 24-bit WAV.">Download WAV</button>
         </div>
       </header>
@@ -94,19 +95,12 @@
           <button id="delayMixParam" class="parameterButton" type="button" data-parameter-help aria-describedby="delayMixParamHelp">Mix</button>
         </div>
         <div id="parameterLegend" class="parameterLegend" aria-label="Current parameter ranges"></div>
-        <section class="valueStrip" aria-label="Current parameter values"><span class="valueBasis" title="Playing: preview engine values. Stopped: curve targets at the playhead.">Playback / playhead</span><span class="compactValue"><strong id="modeReadout">Low Pass</strong> <strong id="cutoffReadout">1.0 kHz</strong></span><details class="valueDetails"><summary>Details</summary><div class="panel">
-
-          <div class="readout">
-            <span>Points</span>
-            <strong id="pointsReadout">2</strong>
-          </div>
-          <div class="readout">
-            <span>Engine</span>
-            <strong>Timbre Filter</strong>
-          </div>
-
-
-        </div></details></section>
+        <div class="panel currentValues" aria-label="Current parameter values">
+          <div class="readout"><span>Curve</span><strong id="modeReadout">Low Pass</strong></div>
+          <div class="readout"><span>Points</span><strong id="pointsReadout">2</strong></div>
+          <div class="readout"><span>Engine</span><strong>Timbre Filter</strong></div>
+          <div class="readout"><span>Value</span><strong id="cutoffReadout" title="Playing: preview engine value. Stopped: curve target at the playhead.">1.0 kHz</strong></div>
+        </div>
         <div class="outputWaveFrame">
           <canvas id="outputWaveCanvas" width="1400" height="96" role="slider" tabindex="0"
             aria-label="Output time position on the original source waveform. Click or drag to seek; effect tails are not shown"
@@ -117,7 +111,7 @@
           <canvas id="waveCanvas" width="1400" height="620"></canvas>
         </div>
 
-        <div class="chainLabel">Signal Chain</div>
+
         <div id="chainDiagram" class="chainDiagram" aria-label="Current effect order"></div>
       </section>
 
@@ -156,7 +150,7 @@
     </main>
 
     <script src="src/file-help.js?v=20261014-family1" type="module"></script>
-    <script src="src/app.js?v=20261015-density2" type="module"></script>
+    <script src="src/app.js?v=20261015-timbre3" type="module"></script>
   <div id="lowpassModeHelp" class="parameterHelp" role="tooltip" hidden><strong>Low Pass · 40 Hz–18 kHz</strong><span>Set the cutoff frequency. Attenuates frequencies above it. The upper limit is reduced at lower processing sample rates.</span><span class="helpState"></span></div>
 <div id="highpassModeHelp" class="parameterHelp" role="tooltip" hidden><strong>High Pass · 40 Hz–18 kHz</strong><span>Set the cutoff frequency. Attenuates frequencies below it. The upper limit is reduced at lower processing sample rates.</span><span class="helpState"></span></div>
 <div id="bandpassModeHelp" class="parameterHelp" role="tooltip" hidden><strong>Band Pass</strong><span>Keep a band around the center frequency. Edit Center Frequency and Width separately.</span><span class="helpState"></span></div>
