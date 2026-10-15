@@ -213,3 +213,8 @@ Explicit user review overrides the shared #30343C transport surround for Timbre:
 
 ### User clarification — lower panels, 2026-10-15
 Supersedes the immediately preceding dark lower-surface exception: signal chain and transport surrounds use the title surface #373B43. Remove their outer borders/dividers and rounded panel edges; contrast with the #191C20 curve canvas provides grouping. Internal button/meter boundaries remain. The waveform/curve separator from the earlier explicit request remains; this correction concerns the lower panels.
+
+### Shared transport alignment — 2026-10-15 (uncommitted review)
+Return / Play / Pause retain their order and behavior. Each occupies a 38 × 32px cell with 4px spacing and a centered 16px icon. Remove the first button's extra 7px offset/divider so visual spacing is uniform. Audio reference palette: surround #292F37, thin border #596472, hover #343A42, playing #5C6978; no per-button accent colors. Override generic button backgrounds only inside transport. Preserve keyboard focus and disabled states.
+
+Release approval (2026-10-15): user approved the reviewed transport/layout changes. All six transport-keyboard suites passed (27 tests total); Oscillator syntax and diff checks passed. Prior browser measurements confirmed equal transport cells, and Oscillator point add/erase, Clear Current, Play/Pause/rewind and narrow layout were checked.
