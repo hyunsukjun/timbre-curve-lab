@@ -1,5 +1,5 @@
 /* Functional surfaces: shared upper controls, independent waveform/analysis area. */
-:root { --family-header: #373b43; --family-wave: #252c32; --family-curve: #191c20; --family-transport: #30343c; }
+:root { --family-header: #373b43; --family-wave: #191c20; --family-curve: #191c20; --family-transport: #30343c; }
 .topbar,.legend,.effectBar,.parameterBar,.parameterLegend,.controlBand,.sourceBand,.impulseBand,.durationPanel,.roomControls,.valueStrip,.voiceDetails,.modulationInfo { background:var(--family-header); border-color:transparent; }
 .valueDetails .panel,.voiceDetails .panel { background:transparent; }
 .outputWaveFrame,.timelineFrame,.sourceFrame,.frequencyFrame { background:var(--family-wave); }
@@ -25,3 +25,23 @@
 /* Preserve the original visible readouts; no new disclosure in the color pass. */
 .curveActions { border-left:0; }
 .currentValues { background:var(--family-header); border:0; }
+
+/* 2026-10-15: matching waveform/curve paper; one quiet separator. */
+.outputWaveFrame { position:relative; }
+.outputWaveFrame::after { content:""; position:absolute; left:0; right:0; bottom:0; height:1px; background:#46515e; pointer-events:none; }
+.app > .playbackBar { left:0; right:0; bottom:0; min-height:54px; padding-block:8px; }
+.playbackBar .outputMeter { grid-row:auto; border-top:0; padding-top:0; }
+@media(min-width:1101px) { .playbackBar .outputMeter { grid-column:auto; padding-left:12px; } }
+@media(max-width:1100px) { .playbackBar .outputMeter { grid-column:1/-1; padding-left:0; } }
+
+/* User clarification: lower controls match the upper title surface. */
+.app > .playbackBar,.chainDiagram { background:var(--family-header); border:0; border-radius:0; }
+
+/* Shared left/right content rails, including expanded parameter controls. */
+:root { --timbre-content-inset:20px; }
+.topbar,.effectBar,.parameterBar,.currentValues,.chainDiagram,.app > .playbackBar { padding-inline:var(--timbre-content-inset); }
+.currentValues .readout:first-child { padding-left:0; }
+.currentValues .readout:last-child { padding-right:0; }
+.outputWaveFrame,.canvasFrame { margin-inline:var(--timbre-content-inset); }
+.editor { background:var(--family-header); }
+@media(max-width:600px) { :root { --timbre-content-inset:10px; } }

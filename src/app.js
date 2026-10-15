@@ -1308,7 +1308,7 @@ function drawOutputWaveform() {
   const plotW = Math.max(1, w - axisWidth);
   const scale = window.devicePixelRatio || 1;
   outputWaveCtx.setTransform(scale, 0, 0, scale, 0, 0);
-  outputWaveCtx.fillStyle = "#252c32";
+  outputWaveCtx.fillStyle = "#191c20";
   outputWaveCtx.fillRect(0, 0, w, h);
 
   outputWaveCtx.strokeStyle = "rgba(139, 149, 162, 0.18)";

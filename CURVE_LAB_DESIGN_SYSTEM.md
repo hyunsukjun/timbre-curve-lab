@@ -205,3 +205,11 @@ See docs/FUNCTIONAL_SURFACE_CONTRACT.md for exact surface and transport values. 
 
 ## Readout disclosure rollback — 2026-10-15
 User requested removal of the newly introduced Details disclosures across the family. Original always-visible readout panels restored; Oscillator retains its pre-existing Synthesis detail panel and original contents. Value computation and audio behavior unchanged. Do not add disclosure or restructure information during color/minor-UI work. Audio also removes the border above EDIT AUDIO.
+
+Timbre refinement (2026-10-15): waveform and curve use #191C20 with a thin #46515E separator; transport #30343C spans the shell edges. See docs/FUNCTIONAL_SURFACE_CONTRACT.md for precedence.
+
+### Timbre lower-surface exception — 2026-10-15
+Explicit user review overrides the shared #30343C transport surround for Timbre: both transport surround and signal-chain background now match waveform/curve paper #191C20. Buttons, meters, separators, layout and processing remain unchanged. This is a Timbre-specific exception, not a family-wide token change.
+
+### User clarification — lower panels, 2026-10-15
+Supersedes the immediately preceding dark lower-surface exception: signal chain and transport surrounds use the title surface #373B43. Remove their outer borders/dividers and rounded panel edges; contrast with the #191C20 curve canvas provides grouping. Internal button/meter boundaries remain. The waveform/curve separator from the earlier explicit request remains; this correction concerns the lower panels.
