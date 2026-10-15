@@ -13,7 +13,8 @@
     <link rel="stylesheet" href="src/parameter-help.css?v=20261014-family1">
     <link rel="stylesheet" href="src/studio-theme.css?v=20261015-family1">
     <link rel="stylesheet" href="src/button-states.css?v=20261015-2">
-  </head>
+  <link rel="stylesheet" href="src/value-strip.css?v=20261015-1">
+</head>
   <body>
     <main class="app">
       <header class="topbar">
@@ -44,7 +45,8 @@
             Open Audio
             <input id="fileInput" type="file" accept="audio/*,.aif,.aiff,.aifc">
           </label>
-          <button id="downloadButton" type="button" disabled title="Source up to 3 min, plus effect tail · Stereo · 48 kHz / 24-bit WAV.">Download WAV</button>
+          <span class="exportStatus" role="status" aria-label="WAV export status">WAV <strong id="downloadReadout">not ready</strong></span>
+<button id="downloadButton" type="button" disabled title="Source up to 3 min, plus effect tail · Stereo · 48 kHz / 24-bit WAV.">Download WAV</button>
         </div>
       </header>
 
@@ -92,11 +94,8 @@
           <button id="delayMixParam" class="parameterButton" type="button" data-parameter-help aria-describedby="delayMixParamHelp">Mix</button>
         </div>
         <div id="parameterLegend" class="parameterLegend" aria-label="Current parameter ranges"></div>
-        <div class="panel">
-          <div class="readout">
-            <span>Curve</span>
-            <strong id="modeReadout">Low Pass</strong>
-          </div>
+        <section class="valueStrip" aria-label="Current parameter values"><span class="valueBasis" title="Playing: preview engine values. Stopped: curve targets at the playhead.">Playback / playhead</span><span class="compactValue"><strong id="modeReadout">Low Pass</strong> <strong id="cutoffReadout">1.0 kHz</strong></span><details class="valueDetails"><summary>Details</summary><div class="panel">
+
           <div class="readout">
             <span>Points</span>
             <strong id="pointsReadout">2</strong>
@@ -105,15 +104,9 @@
             <span>Engine</span>
             <strong>Timbre Filter</strong>
           </div>
-          <div class="readout">
-            <span>Value</span>
-            <strong id="cutoffReadout">1.0 kHz</strong>
-          </div>
-          <div class="readout">
-            <span>WAV</span>
-            <strong id="downloadReadout">not ready</strong>
-          </div>
-        </div>
+
+
+        </div></details></section>
         <div class="outputWaveFrame">
           <canvas id="outputWaveCanvas" width="1400" height="96" role="slider" tabindex="0"
             aria-label="Output time position on the original source waveform. Click or drag to seek; effect tails are not shown"
@@ -163,7 +156,7 @@
     </main>
 
     <script src="src/file-help.js?v=20261014-family1" type="module"></script>
-    <script src="src/app.js?v=20261015-studio2" type="module"></script>
+    <script src="src/app.js?v=20261015-density2" type="module"></script>
   <div id="lowpassModeHelp" class="parameterHelp" role="tooltip" hidden><strong>Low Pass · 40 Hz–18 kHz</strong><span>Set the cutoff frequency. Attenuates frequencies above it. The upper limit is reduced at lower processing sample rates.</span><span class="helpState"></span></div>
 <div id="highpassModeHelp" class="parameterHelp" role="tooltip" hidden><strong>High Pass · 40 Hz–18 kHz</strong><span>Set the cutoff frequency. Attenuates frequencies below it. The upper limit is reduced at lower processing sample rates.</span><span class="helpState"></span></div>
 <div id="bandpassModeHelp" class="parameterHelp" role="tooltip" hidden><strong>Band Pass</strong><span>Keep a band around the center frequency. Edit Center Frequency and Width separately.</span><span class="helpState"></span></div>
@@ -189,5 +182,6 @@
 <div id="delayFeedbackParamHelp" class="parameterHelp" role="tooltip" hidden><strong>Delay Feedback · 0–0.85</strong><span>Set how much delayed sound repeats through the delay.</span><span class="helpState"></span></div>
 <div id="delayMixParamHelp" class="parameterHelp" role="tooltip" hidden><strong>Delay Mix · 0–100%</strong><span>Balance original and echoes: 0% original, 100% wet.</span><span class="helpState"></span></div>
 <script type="module" src="src/parameter-help.js?v=20261014-family1"></script>
+<script src="src/value-details.js?v=20261015-1" type="module"></script>
 </body>
 </html>

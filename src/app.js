@@ -1468,6 +1468,7 @@ function draw() {
     : "--";
   modeReadout.textContent = activeCurve ? curveLabels[activeCurve] : "No Filter Selected";
   pointsReadout.textContent = activeCurve ? String(curves[activeCurve].length) : "0";
+  document.querySelector(".valueStrip .valueBasis").textContent = isPlaying ? "Playback" : "At playhead";
 }
 
 function buildWaveform(audioBuffer) {

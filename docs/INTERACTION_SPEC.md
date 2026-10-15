@@ -276,3 +276,9 @@ Signal Chain block에 포커스한 상태에서 Alt(Option)+좌/우 방향키로
 
 ## 2026-10-14 — Open Audio keyboard access
 파일 입력을 display:none 대신 시각적으로만 숨겨 Tab과 Enter/Space로 기본 파일 선택기에 접근하도록 수정. 포커스는 기존 fileButton:focus-within 윤곽선으로 표시한다. 파일 디코딩·처리 계약은 변경하지 않는다.
+
+## Information-density pilot — local review, 2026-10-15
+
+Selected parameter name/value stays visible; statistics and full value overview are disclosed on demand. WAV status belongs beside Download. All original readout IDs and update sources retained. Playing: existing engine telemetry; stopped: existing curve target/effective-depth formatting at playhead. No filter selected stays --.
+
+Details Space key is isolated from transport. Source/output distinction, off/enabled state and channel information must not be erased by family visual consistency. This is a COMMON CANDIDATE / STANDALONE ASSET pending visual approval; no commit/deploy.

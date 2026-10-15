@@ -190,3 +190,9 @@ Available off/bypassed: Audio reference gradient #363F4B → #2D3540, text #F0F3
 
 ## Current precedence
 See `docs/SHARED_VISUAL_CONTRACT.md` for the accepted shared baseline and resolution of older pilot conflicts. Newer role/state rules supersede old underline and 30px compact-button guidance.
+
+## Information-density pilot — local review, 2026-10-15
+
+Selected parameter name/value stays visible; statistics and full value overview are disclosed on demand. WAV status belongs beside Download. All original readout IDs and update sources retained. Playing: existing engine telemetry; stopped: existing curve target/effective-depth formatting at playhead. No filter selected stays --.
+
+Details Space key is isolated from transport. Source/output distinction, off/enabled state and channel information must not be erased by family visual consistency. This is a COMMON CANDIDATE / STANDALONE ASSET pending visual approval; no commit/deploy.
