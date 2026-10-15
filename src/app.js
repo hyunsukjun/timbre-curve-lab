@@ -537,10 +537,10 @@ function formatTime(seconds) {
 }
 
 function formatClock(seconds) {
-  const safeSeconds = Math.max(0, seconds || 0);
-  const minutes = Math.floor(safeSeconds / 60);
-  const remaining = safeSeconds - (minutes * 60);
-  return `${String(minutes).padStart(2, "0")}:${remaining.toFixed(2).padStart(5, "0")}`;
+  const hundredths = Math.round(Math.max(0, Number.isFinite(seconds) ? seconds : 0) * 100);
+  const minutes = Math.floor(hundredths / 6000);
+  const rest = (hundredths % 6000) / 100;
+  return `${String(minutes).padStart(2, "0")}:${rest.toFixed(2).padStart(5, "0")}`;
 }
 
 function linearToDb(value) {
