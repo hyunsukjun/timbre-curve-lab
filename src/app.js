@@ -1042,7 +1042,7 @@ function drawPointLabel(name, point, color) {
         : formatCutoff(cutoffFromNorm(point.y))
     ));
   ctx.save();
-  ctx.font = "600 11px system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif";
+  ctx.font = "400 11px system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif";
   const metrics = ctx.measureText(label);
   const labelW = metrics.width + 14;
   const labelH = 22;
@@ -1116,7 +1116,7 @@ function drawLowPassAxis() {
   ctx.moveTo(axisWidth + 0.5, 0);
   ctx.lineTo(axisWidth + 0.5, h);
   ctx.stroke();
-  ctx.font = "600 11px system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif";
+  ctx.font = "400 11px system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif";
   ctx.textAlign = "right";
   ctx.textBaseline = "middle";
   for (const hz of labels) {
@@ -1154,7 +1154,7 @@ function drawWidthAxis() {
   ctx.moveTo(axisWidth + 0.5, 0);
   ctx.lineTo(axisWidth + 0.5, h);
   ctx.stroke();
-  ctx.font = "600 11px system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif";
+  ctx.font = "400 11px system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif";
   ctx.textAlign = "right";
   ctx.textBaseline = "middle";
   for (const label of labels) {
@@ -1252,7 +1252,7 @@ function drawValueAxis() {
   ctx.moveTo(axisWidth + 0.5, 0);
   ctx.lineTo(axisWidth + 0.5, h);
   ctx.stroke();
-  ctx.font = "600 11px system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif";
+  ctx.font = "400 11px system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif";
   ctx.textAlign = "right";
   ctx.textBaseline = "middle";
   for (const label of labels) {
@@ -1325,9 +1325,9 @@ function drawOutputWaveform() {
   outputWaveCtx.fillStyle = "#a9b1bb";
   outputWaveCtx.font = "11px sans-serif";
   outputWaveCtx.textBaseline = "middle";
-  outputWaveCtx.fillText("OUTPUT TIME", 10, 12);
-  const hintX = Math.max(axisWidth + 10, 18 + outputWaveCtx.measureText("OUTPUT TIME").width + 8);
-  outputWaveCtx.fillText(w > 640 ? "SOURCE WAVEFORM · EFFECT TAIL NOT SHOWN" : "SOURCE", hintX, 12);
+  outputWaveCtx.fillText("Output Time", 10, 12);
+  const hintX = Math.max(axisWidth + 10, 18 + outputWaveCtx.measureText("Output Time").width + 8);
+  outputWaveCtx.fillText(w > 640 ? "Source waveform · Effect tail not shown" : "Source", hintX, 12);
 
   if (!buffer || !waveform.length) return;
   const stereo = waveform.length > 1;
