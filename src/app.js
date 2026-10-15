@@ -1302,10 +1302,10 @@ function drawOutputWaveform() {
   const plotW = Math.max(1, w - axisWidth);
   const scale = window.devicePixelRatio || 1;
   outputWaveCtx.setTransform(scale, 0, 0, scale, 0, 0);
-  outputWaveCtx.fillStyle = "#0c1f31";
+  outputWaveCtx.fillStyle = "#191c20";
   outputWaveCtx.fillRect(0, 0, w, h);
 
-  outputWaveCtx.strokeStyle = "rgba(79, 121, 155, 0.28)";
+  outputWaveCtx.strokeStyle = "rgba(139, 149, 162, 0.18)";
   outputWaveCtx.lineWidth = 1;
   const divisions = plotW < 680 ? 4 : 10;
   for (let i = 0; i <= divisions; i += 1) {
@@ -1388,11 +1388,11 @@ function draw() {
   const h = canvasCssHeight;
   ctx.setTransform(scale, 0, 0, scale, 0, 0);
   ctx.clearRect(0, 0, w, h);
-  ctx.fillStyle = "#0c1f31";
+  ctx.fillStyle = "#191c20";
   ctx.fillRect(0, 0, w, h);
 
   const plotW = Math.max(1, w - axisWidth);
-  ctx.strokeStyle = "rgba(63, 101, 132, 0.12)";
+  ctx.strokeStyle = "rgba(139, 149, 162, 0.08)";
   ctx.lineWidth = 1;
   for (let i = 0; i <= 40; i += 1) {
     if (i % 4 === 0) continue;
@@ -1411,7 +1411,7 @@ function draw() {
     ctx.stroke();
   }
 
-  ctx.strokeStyle = "rgba(79, 121, 155, 0.28)";
+  ctx.strokeStyle = "rgba(139, 149, 162, 0.18)";
   ctx.lineWidth = 1;
   for (let i = 0; i <= 10; i += 1) {
     const x = axisWidth + ((i / 10) * plotW);
