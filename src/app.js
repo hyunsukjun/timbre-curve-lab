@@ -398,10 +398,30 @@ function activeChainOrder() {
 function renderChainDiagram() {
   chainDiagram.replaceChildren();
 
-  const addConnector = () => {
+  const acceptDrop = (target, beforeName = null) => {
+    target.addEventListener("dragover", event => {
+      if (!draggedChainEffect) return;
+      event.preventDefault();
+      event.dataTransfer.dropEffect = "move";
+      target.classList.add("dragTarget");
+    });
+    target.addEventListener("dragleave", () => target.classList.remove("dragTarget"));
+    target.addEventListener("drop", event => {
+      event.preventDefault();
+      const name = draggedChainEffect;
+      target.classList.remove("dragTarget");
+      if (!chainOrder.includes(name) || name === beforeName) return;
+      const next = chainOrder.filter(effect => effect !== name);
+      next.splice(beforeName === null ? next.length : next.indexOf(beforeName), 0, name);
+      chainOrder = next;
+      markDownloadStale(); sendSettings(); renderChainDiagram();
+    });
+  };
+  const addConnector = (beforeName = null) => {
     const connector = document.createElement("span");
     connector.className = "chainConnector";
     connector.textContent = "-";
+    acceptDrop(connector, beforeName);
     chainDiagram.appendChild(connector);
   };
 
@@ -411,7 +431,7 @@ function renderChainDiagram() {
   chainDiagram.appendChild(input);
 
   for (const name of chainOrder) {
-    addConnector();
+    addConnector(name);
     const block = document.createElement("button");
     block.type = "button";
     block.draggable = true;
@@ -447,26 +467,10 @@ function renderChainDiagram() {
 
     block.addEventListener("dragend", () => {
       draggedChainEffect = null;
-      block.classList.remove("dragging");
+      chainDiagram.querySelectorAll(".dragging, .dragTarget").forEach(element => element.classList.remove("dragging", "dragTarget"));
     });
 
-    block.addEventListener("dragover", (event) => {
-      event.preventDefault();
-      event.dataTransfer.dropEffect = "move";
-    });
 
-    block.addEventListener("drop", (event) => {
-      event.preventDefault();
-      const droppedEffect = draggedChainEffect || event.dataTransfer.getData("text/plain");
-      if (!droppedEffect || droppedEffect === name) return;
-      const nextOrder = chainOrder.filter((effectName) => effectName !== droppedEffect);
-      const targetIndex = nextOrder.indexOf(name);
-      nextOrder.splice(targetIndex, 0, droppedEffect);
-      chainOrder = nextOrder;
-      markDownloadStale();
-      sendSettings();
-      renderChainDiagram();
-    });
 
     chainDiagram.appendChild(block);
   }
@@ -475,20 +479,7 @@ function renderChainDiagram() {
   const output = document.createElement("div");
   output.className = "chainTerminal";
   output.textContent = "Output";
-  output.addEventListener("dragover", (event) => {
-    event.preventDefault();
-    event.dataTransfer.dropEffect = "move";
-  });
-  output.addEventListener("drop", (event) => {
-    event.preventDefault();
-    const droppedEffect = draggedChainEffect || event.dataTransfer.getData("text/plain");
-    if (!droppedEffect) return;
-    chainOrder = chainOrder.filter((effectName) => effectName !== droppedEffect);
-    chainOrder.push(droppedEffect);
-    markDownloadStale();
-    sendSettings();
-    renderChainDiagram();
-  });
+
   chainDiagram.appendChild(output);
 }
 

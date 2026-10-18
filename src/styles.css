@@ -1035,3 +1035,9 @@ button:disabled {
     position: static; flex: 0 0 auto; margin: 0 16px 10px;
   }
 }
+
+/* Drop between effects, including directly after Input and before Output. */
+.chainDiagram { column-gap:0; }
+.chainConnector { position:relative; display:inline-flex; align-items:center; justify-content:center; width:28px; align-self:stretch; min-height:32px; margin:0; }
+.chainConnector.dragTarget { color:transparent; }
+.chainConnector.dragTarget::after { content:""; position:absolute; top:2px; bottom:2px; left:13px; width:2px; border-radius:1px; background:var(--cl-focus); }
