@@ -1,3 +1,4 @@
+import {drawEditorGrid, frequencyTicks, frequencyLabel, spacedMarks, canvasLabelFont} from "./canvas-grid.js";
 import { analyzeSourceColors, toneColor } from "./source-colors.js";
 import { summarizeChannels } from "./source-envelope.js";
 import {mountTransport} from "./common-transport.js?v=20261013-1";
@@ -1045,7 +1046,7 @@ function drawPointLabel(name, point, color) {
         : formatCutoff(cutoffFromNorm(point.y))
     ));
   ctx.save();
-  ctx.font = "400 11px system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif";
+  ctx.font = "500 12px system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif";
   const metrics = ctx.measureText(label);
   const labelW = metrics.width + 14;
   const labelH = 22;
@@ -1108,11 +1109,11 @@ function drawCurve(name, curve, color, width, fillPoints) {
 
 function drawLowPassAxis() {
   const h = canvasCssHeight;
-  const labels = [18000, 8000, 2000, 500, 100, 40];
+  const labels = spacedMarks(frequencyTicks(40, 18000).map(hz=>({hz,y:yFromCutoff(hz)*h})));
   const activeEffect = effectForCurve(activeCurve);
   ctx.save();
   ctx.globalAlpha = activeEffect && effects[activeEffect].enabled ? 1 : 0.52;
-  ctx.fillStyle = "rgba(7, 17, 28, 0.74)";
+  ctx.fillStyle = "#191c20";
   ctx.fillRect(0, 0, axisWidth, h);
   ctx.strokeStyle = "rgba(104, 145, 178, 0.62)";
   ctx.beginPath();
@@ -1122,18 +1123,17 @@ function drawLowPassAxis() {
   ctx.font = "400 11px system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif";
   ctx.textAlign = "right";
   ctx.textBaseline = "middle";
-  for (const hz of labels) {
-    const y = yFromCutoff(hz) * h;
+  for (const {hz,y} of labels) {
     const labelY = Math.max(10, Math.min(h - 10, y));
-    ctx.strokeStyle = "rgba(72, 111, 143, 0.28)";
+    ctx.strokeStyle = "rgba(139,149,162,.18)";
     ctx.beginPath();
     ctx.moveTo(axisWidth - 8, y);
     ctx.lineTo(canvasCssWidth, y);
     ctx.stroke();
-    ctx.fillStyle = "rgba(13, 27, 41, 0.92)";
+    ctx.fillStyle = "#191c20";
     ctx.fillRect(4, labelY - 9, axisWidth - 14, 18);
-    ctx.fillStyle = "#aabccc";
-    ctx.fillText(formatCutoff(hz), axisWidth - 11, labelY);
+    ctx.fillStyle = "#a9b1bb";
+    ctx.fillText(frequencyLabel(hz), axisWidth - 11, labelY);
   }
   ctx.restore();
 }
@@ -1150,7 +1150,7 @@ function drawWidthAxis() {
   const activeEffect = effectForCurve(activeCurve);
   ctx.save();
   ctx.globalAlpha = activeEffect && effects[activeEffect].enabled ? 1 : 0.52;
-  ctx.fillStyle = "rgba(7, 17, 28, 0.74)";
+  ctx.fillStyle = "#191c20";
   ctx.fillRect(0, 0, axisWidth, h);
   ctx.strokeStyle = "rgba(104, 145, 178, 0.62)";
   ctx.beginPath();
@@ -1166,9 +1166,9 @@ function drawWidthAxis() {
     ctx.strokeStyle = "rgba(72, 111, 143, 0.28)";
     ctx.beginPath();
     ctx.moveTo(axisWidth - 8, y);
-    ctx.lineTo(canvasCssWidth, y);
+    ctx.lineTo(axisWidth, y);
     ctx.stroke();
-    ctx.fillStyle = "rgba(13, 27, 41, 0.92)";
+    ctx.fillStyle = "#191c20";
     ctx.fillRect(4, labelY - 9, axisWidth - 14, 18);
     ctx.fillStyle = "#aabccc";
     ctx.fillText(label.text, axisWidth - 11, labelY);
@@ -1248,7 +1248,7 @@ function drawValueAxis() {
   const activeEffect = effectForCurve(activeCurve);
   ctx.save();
   ctx.globalAlpha = activeEffect && effects[activeEffect].enabled ? 1 : 0.52;
-  ctx.fillStyle = "rgba(7, 17, 28, 0.74)";
+  ctx.fillStyle = "#191c20";
   ctx.fillRect(0, 0, axisWidth, h);
   ctx.strokeStyle = "rgba(104, 145, 178, 0.62)";
   ctx.beginPath();
@@ -1264,9 +1264,9 @@ function drawValueAxis() {
     ctx.strokeStyle = "rgba(72, 111, 143, 0.28)";
     ctx.beginPath();
     ctx.moveTo(axisWidth - 8, y);
-    ctx.lineTo(canvasCssWidth, y);
+    ctx.lineTo(axisWidth, y);
     ctx.stroke();
-    ctx.fillStyle = "rgba(13, 27, 41, 0.92)";
+    ctx.fillStyle = "#191c20";
     ctx.fillRect(4, labelY - 9, axisWidth - 14, 18);
     ctx.fillStyle = "#aabccc";
     ctx.fillText(label.text, axisWidth - 11, labelY);
@@ -1341,6 +1341,7 @@ function paintSourceRaster(ctx,w,h,plotW,scale) {
   for (let channel=0;channel<waveform.length;channel++) {
     const peaks=waveform[channel],mid=laneCenters[channel],maxAmplitude=stereo?10:22;
     const spectrum=sourceColors?.[channel];
+    if(!spectrum)continue;
     ctx.fillStyle='#8bc9ff';
     if(spectrum?.length){
       const g=ctx.createLinearGradient(axisWidth,0,w,0),n=Math.min(256,spectrum.length);
@@ -1433,41 +1434,8 @@ function draw() {
   ctx.fillRect(0, 0, w, h);
 
   const plotW = Math.max(1, w - axisWidth);
-  ctx.strokeStyle = "rgba(139, 149, 162, 0.08)";
-  ctx.lineWidth = 1;
-  for (let i = 0; i <= 40; i += 1) {
-    if (i % 4 === 0) continue;
-    const x = axisWidth + ((i / 40) * plotW);
-    ctx.beginPath();
-    ctx.moveTo(x, 0);
-    ctx.lineTo(x, h);
-    ctx.stroke();
-  }
-  for (let i = 1; i < 8; i += 1) {
-    if (i % 2 === 0) continue;
-    const y = (i / 8) * h;
-    ctx.beginPath();
-    ctx.moveTo(axisWidth, y);
-    ctx.lineTo(w, y);
-    ctx.stroke();
-  }
-
-  ctx.strokeStyle = "rgba(139, 149, 162, 0.18)";
-  ctx.lineWidth = 1;
-  for (let i = 0; i <= 10; i += 1) {
-    const x = axisWidth + ((i / 10) * plotW);
-    ctx.beginPath();
-    ctx.moveTo(x, 0);
-    ctx.lineTo(x, h);
-    ctx.stroke();
-  }
-  for (let i = 1; i < 4; i += 1) {
-    const y = (i / 4) * h;
-    ctx.beginPath();
-    ctx.moveTo(axisWidth, y);
-    ctx.lineTo(w, y);
-    ctx.stroke();
-  }
+  const frequencyAxis = activeCurve !== "bandpassWidth" && !["comb", "flanger", "chorus", "delay"].includes(effectForCurve(activeCurve));
+  drawEditorGrid(ctx, axisWidth, 0, plotW, h, {frequency:frequencyAxis});
 
   const activeEffect = effectForCurve(activeCurve);
   if (activeCurve === "bandpassWidth") drawWidthAxis();
