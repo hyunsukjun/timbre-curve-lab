@@ -1,4 +1,4 @@
-import {drawEditorGrid, frequencyTicks, frequencyLabel, spacedMarks, canvasLabelFont} from "./canvas-grid.js";
+import {canvasAxisWidth, drawEditorGrid, frequencyTicks, frequencyLabel, spacedMarks, canvasLabelFont} from "./canvas-grid.js";
 import { analyzeSourceColors, toneColor } from "./source-colors.js";
 import { summarizeChannels } from "./source-envelope.js";
 import {mountTransport} from "./common-transport.js?v=20261013-1";
@@ -191,7 +191,7 @@ const meterDisplay = meterRows.map(() => ({
 }));
 const canvasMinimumWidth = 1800;
 const canvasBaseHeight = 620;
-const axisWidth = 62;
+const axisWidth = canvasAxisWidth;
 const minCutoffHz = 40;
 const maxCutoffHz = 18000;
 const defaultCutoffY = 0.490360266624;
