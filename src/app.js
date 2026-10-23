@@ -1426,7 +1426,11 @@ function draw() {
 
   const plotW = Math.max(1, w - axisWidth);
   const frequencyAxis = activeCurve !== "bandpassWidth" && !["comb", "flanger", "chorus", "delay"].includes(effectForCurve(activeCurve));
+  // Quiet background grid; retain scales, points and curve contrast.
+  ctx.save();
+  ctx.globalAlpha *= 0.65;
   drawEditorGrid(ctx, axisWidth, 0, plotW, h, {frequency:frequencyAxis});
+  ctx.restore();
 
   const activeEffect = effectForCurve(activeCurve);
   if (activeCurve === "bandpassWidth") drawWidthAxis();
