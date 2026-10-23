@@ -39,7 +39,7 @@ The tool is especially useful before introducing more technical systems such as 
 - Realtime `Play`: Web Audio API / AudioWorklet filter engine.
 - `Download WAV`: browser-based offline filter export.
 
-Downloaded files use stereo signed 24-bit PCM WAV and preserve the decoded source sample rate. The built-in sample normally follows the browser AudioContext rate, commonly 48 kHz.
+Downloaded files use stereo signed 24-bit PCM WAV at 48 kHz. Export supports up to 180 seconds of source audio, plus the calculated effect tail. DSP processing uses the decoded input sample rate; the completed output is converted to 48 kHz for WAV export.
 
 This version is a classroom workflow prototype for curve-based timbre shaping. The current engine uses Low Pass, High Pass, Band Pass, Comb, Flanger, Chorus, and Delay so the first musical goal stays simple: draw a curve and hear the color of the sound change over time.
 
