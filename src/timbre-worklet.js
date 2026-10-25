@@ -1,6 +1,9 @@
+import { PlaybackBoundary } from "./playback-boundary.js";
 class TimbreFilterProcessor extends AudioWorkletProcessor {
   constructor() {
     super();
+    this.boundary = new PlaybackBoundary(sampleRate);
+    this.pendingPause = null;
     this.left = null;
     this.right = null;
     this.sampleRateSource = sampleRate;
@@ -60,6 +63,17 @@ class TimbreFilterProcessor extends AudioWorkletProcessor {
 
     this.port.onmessage = (event) => {
       const data = event.data;
+      if (data.type === "play" || data.type === "seek" || data.type === "buffer") {
+        this.pendingPause = null;
+        this.boundary.start();
+      }
+      if (data.type === "stop" && !data.reset && !data.boundaryComplete && this.settings.playing) {
+        this.token = data.token ?? this.token;
+        this.pendingPause = data;
+        this.boundary.release();
+        return;
+      }
+      if (data.type === "stop") this.pendingPause = null;
       if (data.type === "buffer") {
         this.left = data.left;
         this.right = data.right || data.left;
@@ -105,17 +119,16 @@ class TimbreFilterProcessor extends AudioWorkletProcessor {
         this.resetInactiveStates(this.orderedEffects());
       } else if (data.type === "play") {
         this.token = data.token ?? this.token;
-        if (this.left && this.sourceFrame >= this.left.length) {
+        if (this.left && this.sourceFrame >= this.left.length && this.tailFramesRemaining <= 0) {
           this.sourceFrame = 0;
           this.resetFilter();
         }
         this.settings.playing = true;
-        this.tailFramesRemaining = 0;
         this.positionFramesUntilUpdate = 0;
       } else if (data.type === "stop") {
         this.token = data.token ?? this.token;
         this.settings.playing = false;
-        this.tailFramesRemaining = 0;
+        if (data.reset) this.tailFramesRemaining = 0;
         if (data.reset) {
           this.sourceFrame = 0;
           this.resetFilter();
@@ -478,8 +491,10 @@ class TimbreFilterProcessor extends AudioWorkletProcessor {
     const out = outputs[0];
     const outL = out[0];
     const outR = out[1] || out[0];
+    const boundaryTailFrames = Math.round(this.delayTailSeconds() * sampleRate);
 
     for (let i = 0; i < outL.length; i += 1) {
+      const boundaryGain = this.settings.playing && this.left ? this.boundary.next(this.sourceFrame < this.left.length ? Math.ceil((this.left.length - this.sourceFrame) * sampleRate / this.sampleRateSource) + boundaryTailFrames : this.tailFramesRemaining) : 0;
       let l = 0;
       let r = 0;
 
@@ -596,8 +611,13 @@ class TimbreFilterProcessor extends AudioWorkletProcessor {
         this.positionFramesUntilUpdate -= 1;
       }
 
-      outL[i] = this.limitSample(l);
-      outR[i] = this.limitSample(r);
+      outL[i] = this.limitSample(l) * boundaryGain;
+      outR[i] = this.limitSample(r) * boundaryGain;
+      if (this.pendingPause && this.boundary.done) {
+        const pause = this.pendingPause;
+        this.pendingPause = null;
+        this.port.onmessage({ data: { ...pause, boundaryComplete: true } });
+      }
     }
 
     return true;

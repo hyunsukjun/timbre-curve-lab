@@ -1,7 +1,7 @@
 import vm from 'node:vm';import fs from 'node:fs';import assert from 'node:assert/strict';
 import {renderOffline} from '../src/offline-render.js';
 let Processor;const rate=48000;
-vm.runInNewContext(fs.readFileSync(new URL('../src/timbre-worklet.js',import.meta.url),'utf8'),{sampleRate:rate,Float32Array,Math,AudioWorkletProcessor:class{constructor(){this.messages=[];this.port={postMessage:m=>this.messages.push(m)};}},registerProcessor:(n,p)=>Processor=p});
+vm.runInNewContext((fs.readFileSync(new URL('../src/playback-boundary.js',import.meta.url),'utf8').replaceAll('export ', '') + '\n' + fs.readFileSync(new URL('../src/timbre-worklet.js',import.meta.url),'utf8').replace(/^import[^\n]+\n/, '')),{sampleRate:rate,Float32Array,Math,AudioWorkletProcessor:class{constructor(){this.messages=[];this.port={postMessage:m=>this.messages.push(m)};}},registerProcessor:(n,p)=>Processor=p});
 const flat=y=>[{x:0,y},{x:1,y}];
 const base=Object.fromEntries('lowpass highpass bandpassCenter bandpassWidth combDelay combFeedback combMix flangerDelay flangerDepth flangerRate flangerFeedback chorusDelay chorusDepth chorusRate chorusMix delayTime delayFeedback delayMix'.split(' ').map(k=>[k,flat(.5)]));
 const names=['lowpass','highpass','bandpass','comb','flanger','chorus','delay'],keys=['lowPassEnabled','highPassEnabled','bandPassEnabled','combEnabled','flangerEnabled','chorusEnabled','delayEnabled'];
@@ -22,6 +22,19 @@ for(const order of [[],['flanger'],['chorus'],['delay'],['chorus','delay'],['del
  const complete=run(p,offline.left.length+256);assert.equal(p.settings.playing,false);assert.equal(p.messages.filter(m=>m.type==='ended'&&m.token===12).length,1,'single natural end');
  assert(run(p,256).every(a=>a.every(v=>v===0)),'silence after end');
  send(p,{type:'play',token:13});assert.equal(difference(first,run(p,4096)),0,'natural replay');
+ if(order.includes('delay') && offline.duration > .3){
+  const paused=make(), continuous=make();
+  send(paused,{type:'play'});send(continuous,{type:'play'});
+  run(paused,l.length+512);run(continuous,l.length+512);
+  send(paused,{type:'stop',reset:false});run(paused,481);run(continuous,481);
+  const remaining=paused.tailFramesRemaining;
+  assert(remaining>0,'pause inside existing delay tail');
+  assert(run(paused,128).every(c=>c.every(v=>v===0)),'paused tail silent');
+  assert.equal(paused.tailFramesRemaining,remaining,'tail clock retained');
+  send(paused,{type:'play'});
+  const resumed=run(paused,1024), reference=run(continuous,1024);
+  assert(difference(resumed.map(c=>c.subarray(481)),reference.map(c=>c.subarray(481)))<1e-7,'resumed tail history retained after boundary fade');
+ }
  rows.push({order,feedback,stereoRestart:true,stereoSeek:true,naturalReplay:true,singleEnd:true,tailSeconds:offline.duration-.25,fullPreviewRenderMax:difference(complete,[offline.left,offline.right])});
  }
 }

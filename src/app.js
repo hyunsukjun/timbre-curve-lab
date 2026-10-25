@@ -866,10 +866,12 @@ async function playAudio() {
   if (!buffer) return;
   if (isPlaying) return;
   const requestToken = playbackToken;
+  const needsInitialSeek = !node || !workletBufferLoaded;
   try {
     await ensureAudio();
     if (isPlaying || requestToken !== playbackToken || !buffer || playButton.disabled) return;
-    node.port.postMessage({ type: "seek", seconds: playheadSeconds, token: playbackToken });
+    // A retained pause must keep delay/filter history, including an active tail.
+    if (needsInitialSeek) node.port.postMessage({ type: "seek", seconds: playheadSeconds, token: playbackToken });
     node.port.postMessage({ type: "play", token: nextPlaybackToken() });
     isPlaying = true;
     playButton.textContent = "Playing";
@@ -920,7 +922,7 @@ function getSettings() {
 
 async function getOfflineRenderer() {
   if (!renderOffline) {
-    const module = await import("./offline-render.js?v=20261013-depth1");
+    const module = await import("./offline-render.js?v=20261025-fade10");
     renderOffline = module.renderOffline;
   }
   return renderOffline;
@@ -1586,7 +1588,7 @@ async function setupAudio() {
     throw new Error("AudioWorklet is not available. Use a current Chrome, Edge, or Safari version over HTTPS.");
   }
 
-    await audioContext.audioWorklet.addModule("src/timbre-worklet.js?v=20261013-depth1");
+    await audioContext.audioWorklet.addModule("src/timbre-worklet.js?v=20261025-fade10");
     node = new AudioWorkletNode(audioContext, "timbre-filter-processor", {
       numberOfInputs: 0,
       numberOfOutputs: 1,

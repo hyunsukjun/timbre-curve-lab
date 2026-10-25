@@ -1,6 +1,6 @@
-import { exportWav } from "./wav-export.js?v=20261006-stream-01";
+import { exportWav } from "./wav-export.js?v=20261025-fade10";
 import { encodeWav } from "./wav-encoder.js?v=20261006-stream-01";
-import { prepareWavChannels } from "./wav-output.js?v=20261006-stream-01";
+import { prepareWavChannels } from "./wav-output.js?v=20261025-fade10";
 function valueAt(curve, x) {
   if (!curve || curve.length === 0) return 0;
   if (x <= curve[0].x) return curve[0].y;
@@ -388,11 +388,11 @@ export async function renderOffline({ audioBuffer, curves, settings, signal, onP
   }
 
   if (!includePCM) {
-    const result = await exportWav(outL, outR, sampleRate, signal);
+    const result = await exportWav(outL, outR, sampleRate, signal, true);
     onProgress?.(1);
     return { ...result, truncated: audioBuffer.duration > maxDuration };
   }
-  const output = await prepareWavChannels(outL, outR, sampleRate, signal);
+  const output = await prepareWavChannels(outL, outR, sampleRate, signal, undefined, true);
   const blob = await encodeWav(output.left, output.right, output.sampleRate, signal);
   onProgress?.(1);
   return {

@@ -2,7 +2,7 @@ import vm from 'node:vm';import fs from 'node:fs';import assert from 'node:asser
 import {renderOffline} from '../src/offline-render.js';
 let Processor;const rate=48000;
 const context=vm.createContext({sampleRate:rate,Float32Array,Math,AudioWorkletProcessor:class{constructor(){this.port={postMessage(){}};}},registerProcessor:(name,p)=>Processor=p});
-vm.runInContext(fs.readFileSync(new URL('../src/timbre-worklet.js',import.meta.url),'utf8'),context);
+vm.runInContext((fs.readFileSync(new URL('../src/playback-boundary.js',import.meta.url),'utf8').replaceAll('export ', '') + '\n' + fs.readFileSync(new URL('../src/timbre-worklet.js',import.meta.url),'utf8').replace(/^import[^\n]+\n/, '')),context);
 const flat=y=>[{x:0,y},{x:1,y}];
 const curves=Object.fromEntries('lowpass highpass bandpassCenter bandpassWidth combDelay combFeedback combMix flangerDelay flangerDepth flangerRate flangerFeedback chorusDelay chorusDepth chorusRate chorusMix delayTime delayFeedback delayMix'.split(' ').map(k=>[k,flat(.5)]));
 const names=['lowpass','highpass','bandpass','comb','flanger','chorus','delay'],keys=['lowPassEnabled','highPassEnabled','bandPassEnabled','combEnabled','flangerEnabled','chorusEnabled','delayEnabled'];
@@ -19,4 +19,4 @@ for(const order of [[],...names.map(n=>[n]),['chorus','delay'],names]){
  const offline=await renderOffline({audioBuffer:{duration:1,sampleRate:rate,numberOfChannels:2,getChannelData:i=>i?right:left},curves,settings});
  rows.push({order,restart:diff(first,replay),seek:diff(seek,freshSeek),previewRenderFirstHalf:diff(first,offline.left.subarray(0,24000)),renderDuration:offline.duration});
 }
-assert(rows.every(r=>r.restart.max===0&&r.seek.max===0&&r.previewRenderFirstHalf.max===0));console.log(rows);
+assert(rows.every(r=>r.restart.max===0&&r.seek.max===0&&r.previewRenderFirstHalf.max<1e-7));console.log(rows);

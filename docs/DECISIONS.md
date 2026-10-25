@@ -332,3 +332,8 @@ Commit/deployment withheld for user preview. Native confirmation keyboard and co
 - Browser: demo stereo import, Low Pass selection, curve point creation, waveform seek, Play/Pause and actual WAV save passed. Saved10s/stereo/48k/24bit. Native Brave125%/150% checked with900×700 window (720×560 and600×466 CSS viewports); vertical scroll needed at150%, no horizontal overflow, transport accessible.
 - Syntax, source-color/immutable extrema, transport parity and keyboard suites passed. File-replacement-export test updated for current import/status contracts; replacement, decode failure, chooser cancellation and retry pass. No listening approval or low-spec certification.
 - Preview approved for release; file-replacement test maintenance is test-only.
+
+
+## 10 ms playback boundary candidate — 2026-10-25
+
+The current local candidate supersedes earlier automatic transport-boundary durations with the [10 ms playback/WAV contract](PLAYBACK_BOUNDARY.md). Source/effect envelopes are separate. See that contract for pause-state retention, existing tail-length limits and verification status. Uncommitted; listening acceptance pending.
