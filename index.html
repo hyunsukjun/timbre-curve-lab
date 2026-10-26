@@ -104,10 +104,10 @@
         </div>
         <div id="parameterLegend" class="parameterLegend" aria-label="Current parameter ranges"></div>
         <div class="panel currentValues" aria-label="Current parameter values">
-          <div class="readout primaryReadout"><span>Curve</span><strong id="modeReadout">Low Pass</strong></div>
-          <div class="readout"><span>Points</span><strong id="pointsReadout">2</strong></div>
+          <div class="readout primaryReadout"><span>Editing</span><strong id="modeReadout">Low Pass</strong></div>
+          <div class="readout"><span>Curve points</span><strong id="pointsReadout">2</strong></div>
           <div class="readout referenceReadout"><span>Engine</span><strong>Timbre Filter</strong></div>
-          <div class="readout"><span>Value</span><strong id="cutoffReadout" title="Playing: preview engine value. Stopped: curve target at the playhead.">1.0 kHz</strong></div>
+          <div class="readout"><span id="valueBasisLabel" title="Playing: Preview engine value. Stopped: curve target or effective-depth value at the output playhead. Not the selected point.">Value · playhead</span><strong id="cutoffReadout" title="Playing: preview engine value. Stopped: curve target at the playhead.">1.0 kHz</strong></div>
         </div>
         <div class="outputWaveFrame">
           <canvas id="outputWaveCanvas" width="1400" height="96" role="slider" tabindex="0"
@@ -158,7 +158,7 @@
     </main>
 
     <script src="src/file-help.js?v=20261014-family1" type="module"></script>
-    <script src="src/app.js?v=20261026-graphite1" type="module"></script>
+    <script src="src/app.js?v=20261027-context1" type="module"></script>
   <div id="lowpassModeHelp" class="parameterHelp" role="tooltip" hidden><strong>Low Pass · 40 Hz–18 kHz</strong><span>Set the cutoff frequency. Attenuates frequencies above it. The upper limit is reduced at lower processing sample rates.</span><span class="helpState"></span></div>
 <div id="highpassModeHelp" class="parameterHelp" role="tooltip" hidden><strong>High Pass · 40 Hz–18 kHz</strong><span>Set the cutoff frequency. Attenuates frequencies below it. The upper limit is reduced at lower processing sample rates.</span><span class="helpState"></span></div>
 <div id="bandpassModeHelp" class="parameterHelp" role="tooltip" hidden><strong>Band Pass</strong><span>Keep a band around the center frequency. Edit Center Frequency and Width separately.</span><span class="helpState"></span></div>

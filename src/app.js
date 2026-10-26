@@ -50,6 +50,7 @@ const delayFeedbackParam = document.getElementById("delayFeedbackParam");
 const delayMixParam = document.getElementById("delayMixParam");
 const parameterLegend = document.getElementById("parameterLegend");
 const cutoffReadout = document.getElementById("cutoffReadout");
+const valueBasisLabel = document.getElementById("valueBasisLabel");
 const downloadReadout = document.getElementById("downloadReadout");
 function setExportStatus(message) {
   const passive = ["ready", "not ready", "needs export"].includes(message);
@@ -1462,6 +1463,8 @@ function draw() {
 
   timeStatus.textContent = buffer ? `${formatClock(playheadSeconds)} / ${formatClock(buffer.duration)}` : "00:00.00 / 00:00.00";
   drawOutputWaveform();
+  const valueCaption = isPlaying ? "Value · playback" : "Value · playhead";
+  if (valueBasisLabel.textContent !== valueCaption) valueBasisLabel.textContent = valueCaption;
   cutoffReadout.textContent = activeEffect && effects[activeEffect].enabled
     ? (
       activeEffect === "comb"
