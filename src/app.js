@@ -1,3 +1,4 @@
+import {beginVerticalGroup, moveVerticalGroup, restoreVerticalGroup, verticalGroupSuffix, drawVerticalGroupRing} from "./curve-group-edit.js?v=20261027-shift1";
 import {canvasAxisWidth, drawEditorGrid, frequencyTicks, frequencyLabel, spacedMarks, canvasLabelFont} from "./canvas-grid.js?v=20261026-graphite1";
 import { analyzeSourceColors, toneColor } from "./source-colors.js";
 import { summarizeChannels } from "./source-envelope.js";
@@ -21,7 +22,7 @@ const ctx = canvas.getContext("2d");
 const penTool = document.getElementById("penTool");
 const eraserTool = document.getElementById("eraserTool");
 const eraseModifier = /Mac|iPhone|iPad|iPod/.test(navigator.platform || navigator.userAgentData?.platform || "")
-  ? "metaKey"
+  ? "altKey"
   : "ctrlKey";
 const lowpassMode = document.getElementById("lowpassMode");
 const highpassMode = document.getElementById("highpassMode");
@@ -140,6 +141,9 @@ let chainOrder = [];
 let draggedChainEffect = null;
 let selectedTool = "pen";
 let selectedPoint = null;
+let curvePointerId = null;
+let verticalDrag = null;
+let shiftHeld = false;
 let hoveredPoint = null;
 let dragging = false;
 let playheadSeconds = 0;
@@ -1032,13 +1036,14 @@ function drawPointLabel(name, point, color) {
   const position = pointScreenPosition(name, point);
   const px = position.x;
   const py = position.y;
-  const label = name === "bandpassWidth"
+  const valueLabel = name === "bandpassWidth"
     ? formatWidth(point.y)
     : (effectForCurve(name) === "comb" ? formatCombValue(name, point.y) : (
       ["flanger", "chorus", "delay"].includes(effectForCurve(name))
         ? formatTimeEffectValue(name, point.y)
         : formatCutoff(cutoffFromNorm(point.y))
     ));
+  const label = valueLabel + verticalGroupSuffix(getVerticalPoints().length);
   ctx.save();
   ctx.font = "500 12px system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif";
   const metrics = ctx.measureText(label);
@@ -1083,6 +1088,7 @@ function drawCurve(name, curve, color, width, fillPoints) {
   ctx.stroke();
 
   if (fillPoints) {
+    const groupPoints = new Set(getVerticalPoints());
     for (let i = 0; i < curve.length; i += 1) {
       const point = curve[i];
       const position = pointScreenPosition(name, point);
@@ -1093,6 +1099,7 @@ function drawCurve(name, curve, color, width, fillPoints) {
       ctx.strokeStyle = "#06111c";
       ctx.lineWidth = 2;
       ctx.stroke();
+      if (groupPoints.has(point)) drawVerticalGroupRing(ctx, position.x, position.y, color, canvasCssWidth - position.x);
       if (i === selectedPoint || i === hoveredPoint) {
         drawPointLabel(name, point, color);
       }
@@ -1821,6 +1828,7 @@ downloadButton.addEventListener("click", async () => {
 });
 
 resetButton.addEventListener("click", () => {
+  if (verticalDrag) finishCurveDrag(true);
   const shouldReset = window.confirm("Reset all curves and filter states?");
   if (!shouldReset) return;
 
@@ -1848,6 +1856,7 @@ resetButton.addEventListener("click", () => {
 });
 
 clearCurveButton.addEventListener("click", () => {
+  if (verticalDrag) finishCurveDrag(true);
   if (!activeCurve) return;
   forceStopAudio();
   curves[activeCurve] = defaultCurves[activeCurve]();
@@ -1860,6 +1869,7 @@ clearCurveButton.addEventListener("click", () => {
 });
 
 function setActiveCurve(name) {
+  if (verticalDrag) finishCurveDrag(true);
   activeCurve = name;
   updateEffectButtons();
   draw();
@@ -1955,6 +1965,7 @@ function updateEffectButtons() {
 }
 
 function toggleEffect(name) {
+  if (verticalDrag) finishCurveDrag(true);
   effects[name].enabled = !effects[name].enabled;
   if (effects[name].enabled) addEffectToChain(name);
   else {
@@ -1968,6 +1979,7 @@ function toggleEffect(name) {
 }
 
 function handleEffectClick(name) {
+  if (verticalDrag) finishCurveDrag(true);
   const currentEffect = effectForCurve(activeCurve);
   if (currentEffect === name) {
     toggleEffect(name);
@@ -2118,10 +2130,78 @@ function isErasing(event) {
 }
 
 function updateEraseCursor(event) {
-  canvas.classList.toggle("eraseMode", isErasing(event));
+  if (event) shiftHeld = Boolean(event.shiftKey);
+  const editable = Boolean(activeCurve && effects[effectForCurve(activeCurve)].enabled);
+  const erasing = editable && curvePointerId == null && isErasing(event);
+  canvas.classList.toggle("eraseMode", erasing);
+  canvas.style.cursor = !editable ? "default" : verticalDrag || (curvePointerId == null && shiftHeld && !erasing)
+    ? "ns-resize" : erasing ? "" : hoveredPoint != null ? "pointer" : "crosshair";
+}
+
+function getVerticalPoints() {
+  if (verticalDrag) return verticalDrag.points.map(entry => entry.point);
+  if (curvePointerId != null || !shiftHeld || canvas.classList.contains("eraseMode") || !(Boolean(activeCurve && effects[effectForCurve(activeCurve)].enabled))) return [];
+  const index = hoveredPoint;
+  return index != null && index >= 0 ? curves[activeCurve].slice(index) : [];
+}
+
+function groupPointerY(event, anchorX) {
+  if (activeCurve === "bandpassWidth") {
+    // The width boundary is relative to Center at the grabbed X, not pointer X.
+    const rect = canvas.getBoundingClientRect();
+    const centerY = valueAt(curves.bandpassCenter, anchorX);
+    return (1 - (event.clientY - rect.top) / rect.height) / Math.max(centerY, 1 - centerY);
+  }
+  return pointerToPoint(event).y;
+}
+
+function beginCurveGroup(event, index) {
+  event.preventDefault();
+  if (index == null || index < 0) return false;
+  const anchorX = curves[activeCurve][index].x;
+  const group = beginVerticalGroup(curves[activeCurve], index, groupPointerY(event, anchorX));
+  group.curveName = activeCurve;
+  group.anchorX = anchorX;
+  group.wasEdited = editedCurves[activeCurve];
+  verticalDrag = group;
+  curvePointerId = event.pointerId;
+  dragging = true;
+  canvas.setPointerCapture(event.pointerId);
+  updateEraseCursor(event);
+  draw();
+  return true;
+}
+
+function moveCurveGroup(event) {
+  if (moveVerticalGroup(verticalDrag, groupPointerY(event, verticalDrag.anchorX))) {
+    editedCurves[verticalDrag.curveName] = true;
+    sendCurves();
+    draw();
+  }
+}
+
+function finishCurveDrag(cancel = false) {
+  if (cancel && restoreVerticalGroup(verticalDrag)) {
+    editedCurves[verticalDrag.curveName] = verticalDrag.wasEdited;
+    sendCurves();
+    draw();
+  }
+  verticalDrag = null;
+  dragging = false;
+  const pointerId = curvePointerId;
+  curvePointerId = null;
+  if (pointerId != null && canvas.hasPointerCapture(pointerId)) canvas.releasePointerCapture(pointerId);
+}
+
+function cancelCurvePointer(event) {
+  if (curvePointerId == null || event.pointerId !== curvePointerId) return;
+  finishCurveDrag(true);
+  updateEraseCursor(event);
+  draw();
 }
 
 function setTool(tool) {
+  if (verticalDrag) finishCurveDrag(true);
   selectedTool = tool;
   penTool.classList.toggle("active", tool === "pen");
   eraserTool.classList.toggle("active", tool === "eraser");
@@ -2137,7 +2217,7 @@ penTool.addEventListener("click", () => setTool("pen"));
 eraserTool.addEventListener("click", () => setTool("eraser"));
 
 canvas.addEventListener("pointerdown", (event) => {
-  if (event.button !== 0) return;
+  if (event.button !== 0 || curvePointerId != null) return;
   if (!activeCurve) return;
   if (!effects[effectForCurve(activeCurve)].enabled) return;
   const p = pointerToPoint(event);
@@ -2155,6 +2235,14 @@ canvas.addEventListener("pointerdown", (event) => {
     }
     return;
   }
+  if (event.shiftKey) {
+    hoveredPoint = selectedPoint >= 0 ? selectedPoint : null;
+    beginCurveGroup(event, selectedPoint);
+    if (selectedPoint < 0) selectedPoint = null;
+    updateEraseCursor(event);
+    draw();
+    return;
+  }
   if (selectedPoint < 0) {
     curve.push(p);
     sortCurve(curve);
@@ -2163,12 +2251,15 @@ canvas.addEventListener("pointerdown", (event) => {
   hoveredPoint = selectedPoint;
   editedCurves[activeCurve] = true;
   dragging = true;
+  curvePointerId = event.pointerId;
   canvas.setPointerCapture(event.pointerId);
   sendCurves();
   draw();
 });
 
 canvas.addEventListener("pointermove", (event) => {
+  if (curvePointerId != null && event.pointerId !== curvePointerId) return;
+  if (verticalDrag) { moveCurveGroup(event); return; }
   updateEraseCursor(event);
   if (!activeCurve) return;
   const p = pointerToPoint(event);
@@ -2200,10 +2291,12 @@ canvas.addEventListener("pointermove", (event) => {
 });
 
 canvas.addEventListener("pointerup", (event) => {
-  dragging = false;
+  if (curvePointerId == null || event.pointerId !== curvePointerId) return;
+  finishCurveDrag();
   selectedPoint = null;
   hoveredPoint = null;
-  canvas.releasePointerCapture(event.pointerId);
+
+  updateEraseCursor(event);
   draw();
 });
 
@@ -2214,10 +2307,40 @@ canvas.addEventListener("pointerleave", () => {
 });
 
 canvas.addEventListener("pointerenter", updateEraseCursor);
+canvas.addEventListener("pointercancel", cancelCurvePointer);
+canvas.addEventListener("lostpointercapture", cancelCurvePointer);
+window.addEventListener("keydown", (event) => {
+  if (event.key === "Escape" && verticalDrag) {
+    event.preventDefault();
+    event.stopImmediatePropagation();
+    finishCurveDrag(true);
+    updateEraseCursor(event);
+    draw();
+    return;
+  }
+  const previousShift = shiftHeld;
+  const previousErase = canvas.classList.contains("eraseMode");
+  updateEraseCursor(event);
+  if (previousShift !== shiftHeld || previousErase !== canvas.classList.contains("eraseMode")) draw();
+});
+window.addEventListener("keyup", (event) => {
+  const previousShift = shiftHeld;
+  const previousErase = canvas.classList.contains("eraseMode");
+  updateEraseCursor(event);
+  if (previousShift !== shiftHeld || previousErase !== canvas.classList.contains("eraseMode")) draw();
+});
+window.addEventListener("blur", () => {
+  finishCurveDrag(true);
+  shiftHeld = false;
+  hoveredPoint = null;
+  updateEraseCursor();
+  draw();
+});
 
-window.addEventListener("keydown", updateEraseCursor);
-window.addEventListener("keyup", updateEraseCursor);
-window.addEventListener("blur", () => updateEraseCursor());
+
+
+
+
 
 window.addEventListener("resize", resizeCanvas);
 if ("ResizeObserver" in window) {

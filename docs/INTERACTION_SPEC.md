@@ -48,7 +48,7 @@ Each effect can occur only once. Enabled state and currently edited state are di
 - Clicking an interior point deletes only that point.
 - Clicking empty space does not create a point.
 - The first and last points cannot be deleted.
-- Mac Command-click and Windows/PC Ctrl-click temporarily use Eraser behavior while Pen remains selected.
+- Mac Option-click and Windows/PC Ctrl-click temporarily use Eraser behavior while Pen remains selected.
 - Releasing the modifier returns cursor behavior to the selected tool.
 
 ## Point Hit And Overlap
@@ -111,7 +111,7 @@ Stored curve values do not change on resize. The web Canvas recalculates backing
 ## Keyboard And Accessibility Baseline
 
 - `Space`: transport toggle.
-- `Command+click` on macOS: temporary Eraser.
+- `Option+click` on macOS: temporary Eraser.
 - `Ctrl+click` on PC: temporary Eraser.
 - Buttons expose pressed states where applicable and have visible keyboard focus.
 - Touch-specific behavior is `UNVERIFIED` and not a current target.
@@ -307,3 +307,7 @@ The current local candidate supersedes earlier automatic transport-boundary dura
 ## Readout context family release — 2026-10-27
 
 Value caption distinguishes stopped playhead targets/effective-depth formatting from running Preview telemetry; -- unchanged. No new gesture, seeking, point selection, transport command or audio mutation is introduced by displaying these values. See `READOUT_CONTEXT_CONTRACT.md` for basis, source-range rules, verification boundary and portability.
+
+## Shift group / Option erase — 2026-10-27
+
+Current gesture contract supersedes earlier Mac Command erase statements only. Shift captures the clicked point and ordered suffix in the active curve, fixes all X and applies one normalized Y delta with common bounds. Option-click temporarily erases on Mac, Ctrl-click on PC. Esc/cancellation restores the pending group. Existing normal editing and source/transport semantics remain. See [gesture contract](CURVE_GESTURE_CONTRACT.md).

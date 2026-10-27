@@ -138,3 +138,7 @@ See [Band Pass correction](docs/BANDPASS_WIDTH_2026-10-13.md).
 Flanger/Chorus Depth is a requested sweep amplitude. Small Delay values limit
 the effective depth to keep a smooth symmetric sweep; the readout shows the
 effective value when limited. [Details](docs/MODULATION_DEPTH_2026-10-13.md).
+
+## Shift group / Option erase — 2026-10-27
+
+Shift-drag a point and following points vertically with X fixed; Mac Option-click erases an interior point (PC Ctrl-click unchanged). Original editing, mappings and DSP remain. User-reviewed UI checks are recorded in the gesture contract; commit/deployment was explicitly authorized on 2026-10-27. See [gesture contract](docs/CURVE_GESTURE_CONTRACT.md).
