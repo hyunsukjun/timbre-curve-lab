@@ -270,3 +270,7 @@ STANDALONE ASSET / approved web gesture. Retain active-curve ordered suffix, fix
 ## Readout hierarchy and key context — 2026-10-28
 
 STANDALONE ASSET / approved web UI. Preserve edit target, selected-point values, playhead/Preview values, input/output/IR time and engine/safety distinctions. Use role order/proximity and an optional context-specific shortcut reference. Values describe the current Preview/playhead, not a selected point. Effect enabled and currently edited are separate states. Native menus/tooltips/key conventions may replace web details/popover mechanics; web pixels/breakpoints are not native specifications. No native implementation or listening approval implied.
+
+## Toolbar hierarchy and technical metadata — 2026-10-28
+
+STANDALONE ASSET / approved web UI. Move the fixed Timbre Filter name into Files information. Keep three current-value fields. Shortcuts follows Pen/Eraser in one wrapping unit; a two-column effect bar keeps Clear Current/Reset All under file actions without adding a third toolbar row. Group editing help with editing tools and reset utilities with upper file/task actions. Separate fixed implementation identity from actionable state. Native layout, focus conventions and dimensions require independent validation; no native implementation or listening acceptance implied.

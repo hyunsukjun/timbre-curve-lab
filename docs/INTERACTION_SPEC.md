@@ -316,3 +316,7 @@ Current gesture contract supersedes earlier Mac Command erase statements only. S
 ## Contextual shortcut guide — 2026-10-28
 
 APPROVED WEB UI. The native Shortcuts disclosure reuses file-information behavior and Graphite roles. Click/Enter/Space opens it without changing transport. Escape closes it before background gesture cancellation and returns summary focus; outside press, Tab leaving, outer scroll/resize dismiss; internal scrolling stays usable. Timbre keeps Shortcuts with Clear Current/Reset All utility actions so the dense effect toolbar does not gain a row. No assignment, point/mapping, select/Space routing, chain keyboard logic or Preview/Render behavior changed.
+
+## Toolbar DOM order — 2026-10-28
+
+APPROVED WEB UI. Move the fixed Timbre Filter name into Files information. Keep three current-value fields. Shortcuts follows Pen/Eraser in one wrapping unit; a two-column effect bar keeps Clear Current/Reset All under file actions without adding a third toolbar row. Move existing nodes instead of assigning CSS-only visual order. Pen/Eraser → Shortcuts remains the Tab sequence. Preserve Clear/Reset behavior, confirmation semantics and key routing; moving a button is not approval of native-confirm keyboard behavior.

@@ -335,3 +335,7 @@ IMPLEMENTED / UI checks verified as stated in the contract. Add Shift suffix Y-o
 ## Readout hierarchy and shortcut reference — 2026-10-28
 
 IMPLEMENTED / USER-APPROVED WEB UI. Existing fields/IDs/labels/units/value origins retained; edit target and point count lead musical values, followed by input/engine/safety references. All values stay visible. An optional Shortcuts guide exposes only current per-Lab bindings; no source-volume/Undo feature is copied from Audio. Values describe the current Preview/playhead, not a selected point. Effect enabled and currently edited are separate states.
+
+## Toolbar and information visibility — 2026-10-28
+
+IMPLEMENTED / USER-APPROVED WEB UI. Move the fixed Timbre Filter name into Files information. Keep three current-value fields. Shortcuts follows Pen/Eraser in one wrapping unit; a two-column effect bar keeps Clear Current/Reset All under file actions without adding a third toolbar row. No new controls, shortcuts, processing or value model. The user approved commit/deployment after visual review on 2026-10-28; publication success is verified separately.

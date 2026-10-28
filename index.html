@@ -18,7 +18,7 @@
     <link rel="stylesheet" href="src/transport-polish.css?v=20261015-2">
   <link rel="stylesheet" href="src/transport-surface.css?v=20261015-2">
   <link rel="stylesheet" href="src/brand-layout.css?v=20261015-1">
-    <link rel="stylesheet" href="src/readout-layout.css?v=20261028-family-guide1">
+    <link rel="stylesheet" href="src/readout-layout.css?v=20261028-toolbar-engine1">
     <link rel="stylesheet" href="src/header-rhythm.css?v=20261015-1">
     <link rel="stylesheet" href="src/typography.css?v=20261015-family1">
   <link rel="stylesheet" href="src/quiet-ui.css?v=20261023-family1">
@@ -46,6 +46,7 @@
                 <dt>AIFF</dt><dd>Mono/stereo 16/24-bit PCM (8–192 kHz), converted locally on import. AIFF-C is not supported.</dd>
                 <dt>AIFF limits</dt><dd>128 MiB file / converted WAV; 192 MiB decoded audio. Other formats depend on browser memory.</dd>
                 <dt>Output</dt><dd>Source up to 3 min, plus effect tail · Stereo · 48 kHz / 24-bit WAV.</dd>
+                <dt>Processing</dt><dd>Timbre Filter</dd>
               </dl>
               <p>Short excerpts recommended. Use one Lab at a time for heavy processing.</p>
             </div>
@@ -69,20 +70,22 @@
             <button id="flangerMode" class="effectModule flangerModule" type="button" data-parameter-help aria-describedby="flangerModeHelp">Flanger</button>
             <button id="chorusMode" class="effectModule chorusModule" type="button" data-parameter-help aria-describedby="chorusModeHelp">Chorus</button>
             <button id="delayMode" class="effectModule delayModule" type="button" data-parameter-help aria-describedby="delayModeHelp">Delay</button>
-            <div class="toolToggle" role="group" aria-label="Curve editing tool">
-              <button id="penTool" class="active" type="button" aria-label="Pen" aria-pressed="true" title="Pen: add or move points. Shift-drag a point and following points vertically; X stays fixed. Esc cancels the group drag.">
-                <svg xmlns="http://www.w3.org/2000/svg" width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L9 17l-4 1 1-4Z"/></svg>
-              </button>
-              <button id="eraserTool" type="button" aria-label="Eraser" aria-pressed="false" title="Eraser: click a point to delete. Mac: Option-click; PC: Ctrl-click">
-                <svg xmlns="http://www.w3.org/2000/svg" width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m7 21-4-4a2 2 0 0 1 0-3L13 4a2 2 0 0 1 3 0l6 6a2 2 0 0 1 0 3l-8 8"/><path d="M22 21H7"/><path d="m5 11 9 9"/></svg>
-              </button>
+            <div class="editingToolGroup">
+              <div class="toolToggle" role="group" aria-label="Curve editing tool">
+                <button id="penTool" class="active" type="button" aria-label="Pen" aria-pressed="true" title="Pen: add or move points. Shift-drag a point and following points vertically; X stays fixed. Esc cancels the group drag.">
+                  <svg xmlns="http://www.w3.org/2000/svg" width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L9 17l-4 1 1-4Z"/></svg>
+                </button>
+                <button id="eraserTool" type="button" aria-label="Eraser" aria-pressed="false" title="Eraser: click a point to delete. Mac: Option-click; PC: Ctrl-click">
+                  <svg xmlns="http://www.w3.org/2000/svg" width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m7 21-4-4a2 2 0 0 1 0-3L13 4a2 2 0 0 1 3 0l6 6a2 2 0 0 1 0 3l-8 8"/><path d="M22 21H7"/><path d="m5 11 9 9"/></svg>
+                </button>
+              </div>
+              <details id="shortcutHelp" class="fileHelp shortcutHelp">
+                <summary title="Existing shortcuts by editing area">Shortcuts</summary>
+                <div class="fileHelpPanel" aria-label="Keyboard shortcuts"><strong>Keyboard shortcuts</strong><h3>Curve editing</h3><dl><dt>Shift-drag</dt><dd>Move this and following points vertically. X stays fixed.</dd><dt>Option-click</dt><dd>Mac: delete a point. PC: Ctrl-click. Endpoints stay protected.</dd><dt>Esc</dt><dd>Cancel the pending Shift group drag.</dd></dl><h3>Effect chain · effect block focused</h3><dl><dt>Option/Alt + ← / →</dt><dd>Move the focused effect earlier or later in the chain.</dd></dl><h3>Playback</h3><dl><dt>Space</dt><dd>Play/pause outside inputs, selectors and help.</dd><dt>← / →</dt><dd>Source waveform guide focused: seek 1 s; Shift: 0.1 s. Home / End: boundaries.</dd></dl><p>Values describe the current Preview/playhead, not a selected point. Effect enabled and currently edited are separate states. Esc closes this guide.</p></div>
+              </details>
             </div>
           </div>
           <div class="curveActions">
-            <details id="shortcutHelp" class="fileHelp shortcutHelp">
-              <summary title="Existing shortcuts by editing area">Shortcuts</summary>
-              <div class="fileHelpPanel" aria-label="Keyboard shortcuts"><strong>Keyboard shortcuts</strong><h3>Curve editing</h3><dl><dt>Shift-drag</dt><dd>Move this and following points vertically. X stays fixed.</dd><dt>Option-click</dt><dd>Mac: delete a point. PC: Ctrl-click. Endpoints stay protected.</dd><dt>Esc</dt><dd>Cancel the pending Shift group drag.</dd></dl><h3>Effect chain · effect block focused</h3><dl><dt>Option/Alt + ← / →</dt><dd>Move the focused effect earlier or later in the chain.</dd></dl><h3>Playback</h3><dl><dt>Space</dt><dd>Play/pause outside inputs, selectors and help.</dd><dt>← / →</dt><dd>Source waveform guide focused: seek 1 s; Shift: 0.1 s. Home / End: boundaries.</dd></dl><p>Values describe the current Preview/playhead, not a selected point. Effect enabled and currently edited are separate states. Esc closes this guide.</p></div>
-            </details>
             <button id="clearCurveButton" type="button">Clear Current</button>
             <button id="resetButton" type="button">Reset All</button>
           </div>
@@ -110,8 +113,7 @@
         <div class="panel currentValues contextReadouts" aria-label="Current parameter values">
           <div class="readout primaryReadout"><span>Editing</span><strong id="modeReadout">Low Pass</strong></div>
           <div class="readout editContextEnd"><span>Curve points</span><strong id="pointsReadout">2</strong></div>
-          <div class="readout playbackGroupEnd"><span id="valueBasisLabel" title="Playing: Preview engine value. Stopped: curve target or effective-depth value at the output playhead. Not the selected point.">Value · playhead</span><strong id="cutoffReadout" title="Playing: preview engine value. Stopped: curve target at the playhead.">1.0 kHz</strong></div>
-          <div class="readout referenceReadout"><span>Engine</span><strong>Timbre Filter</strong></div>
+          <div class="readout"><span id="valueBasisLabel" title="Playing: Preview engine value. Stopped: curve target or effective-depth value at the output playhead. Not the selected point.">Value · playhead</span><strong id="cutoffReadout" title="Playing: preview engine value. Stopped: curve target at the playhead.">1.0 kHz</strong></div>
         </div>
         <div class="outputWaveFrame">
           <canvas id="outputWaveCanvas" width="1400" height="96" role="slider" tabindex="0"
