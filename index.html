@@ -18,7 +18,7 @@
     <link rel="stylesheet" href="src/transport-polish.css?v=20261015-2">
   <link rel="stylesheet" href="src/transport-surface.css?v=20261015-2">
   <link rel="stylesheet" href="src/brand-layout.css?v=20261015-1">
-    <link rel="stylesheet" href="src/readout-layout.css?v=20261015-compact2">
+    <link rel="stylesheet" href="src/readout-layout.css?v=20261028-family-guide1">
     <link rel="stylesheet" href="src/header-rhythm.css?v=20261015-1">
     <link rel="stylesheet" href="src/typography.css?v=20261015-family1">
   <link rel="stylesheet" href="src/quiet-ui.css?v=20261023-family1">
@@ -79,6 +79,10 @@
             </div>
           </div>
           <div class="curveActions">
+            <details id="shortcutHelp" class="fileHelp shortcutHelp">
+              <summary title="Existing shortcuts by editing area">Shortcuts</summary>
+              <div class="fileHelpPanel" aria-label="Keyboard shortcuts"><strong>Keyboard shortcuts</strong><h3>Curve editing</h3><dl><dt>Shift-drag</dt><dd>Move this and following points vertically. X stays fixed.</dd><dt>Option-click</dt><dd>Mac: delete a point. PC: Ctrl-click. Endpoints stay protected.</dd><dt>Esc</dt><dd>Cancel the pending Shift group drag.</dd></dl><h3>Effect chain · effect block focused</h3><dl><dt>Option/Alt + ← / →</dt><dd>Move the focused effect earlier or later in the chain.</dd></dl><h3>Playback</h3><dl><dt>Space</dt><dd>Play/pause outside inputs, selectors and help.</dd><dt>← / →</dt><dd>Source waveform guide focused: seek 1 s; Shift: 0.1 s. Home / End: boundaries.</dd></dl><p>Values describe the current Preview/playhead, not a selected point. Effect enabled and currently edited are separate states. Esc closes this guide.</p></div>
+            </details>
             <button id="clearCurveButton" type="button">Clear Current</button>
             <button id="resetButton" type="button">Reset All</button>
           </div>
@@ -103,11 +107,11 @@
           <button id="delayMixParam" class="parameterButton" type="button" data-parameter-help aria-describedby="delayMixParamHelp">Mix</button>
         </div>
         <div id="parameterLegend" class="parameterLegend" aria-label="Current parameter ranges"></div>
-        <div class="panel currentValues" aria-label="Current parameter values">
+        <div class="panel currentValues contextReadouts" aria-label="Current parameter values">
           <div class="readout primaryReadout"><span>Editing</span><strong id="modeReadout">Low Pass</strong></div>
-          <div class="readout"><span>Curve points</span><strong id="pointsReadout">2</strong></div>
+          <div class="readout editContextEnd"><span>Curve points</span><strong id="pointsReadout">2</strong></div>
+          <div class="readout playbackGroupEnd"><span id="valueBasisLabel" title="Playing: Preview engine value. Stopped: curve target or effective-depth value at the output playhead. Not the selected point.">Value · playhead</span><strong id="cutoffReadout" title="Playing: preview engine value. Stopped: curve target at the playhead.">1.0 kHz</strong></div>
           <div class="readout referenceReadout"><span>Engine</span><strong>Timbre Filter</strong></div>
-          <div class="readout"><span id="valueBasisLabel" title="Playing: Preview engine value. Stopped: curve target or effective-depth value at the output playhead. Not the selected point.">Value · playhead</span><strong id="cutoffReadout" title="Playing: preview engine value. Stopped: curve target at the playhead.">1.0 kHz</strong></div>
         </div>
         <div class="outputWaveFrame">
           <canvas id="outputWaveCanvas" width="1400" height="96" role="slider" tabindex="0"
@@ -157,7 +161,7 @@
       </footer>
     </main>
 
-    <script src="src/file-help.js?v=20261014-family1" type="module"></script>
+    <script src="src/file-help.js?v=20261028-family-guide1" type="module"></script>
     <script src="src/app.js?v=20261027-shift1" type="module"></script>
   <div id="lowpassModeHelp" class="parameterHelp" role="tooltip" hidden><strong>Low Pass · 40 Hz–18 kHz</strong><span>Set the cutoff frequency. Attenuates frequencies above it. The upper limit is reduced at lower processing sample rates.</span><span class="helpState"></span></div>
 <div id="highpassModeHelp" class="parameterHelp" role="tooltip" hidden><strong>High Pass · 40 Hz–18 kHz</strong><span>Set the cutoff frequency. Attenuates frequencies below it. The upper limit is reduced at lower processing sample rates.</span><span class="helpState"></span></div>
