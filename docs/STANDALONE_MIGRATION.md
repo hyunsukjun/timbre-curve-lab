@@ -274,3 +274,8 @@ STANDALONE ASSET / approved web UI. Preserve edit target, selected-point values,
 ## Toolbar hierarchy and technical metadata — 2026-10-28
 
 STANDALONE ASSET / approved web UI. Move the fixed Timbre Filter name into Files information. Keep three current-value fields. Shortcuts follows Pen/Eraser in one wrapping unit; a two-column effect bar keeps Clear Current/Reset All under file actions without adding a third toolbar row. Group editing help with editing tools and reset utilities with upper file/task actions. Separate fixed implementation identity from actionable state. Native layout, focus conventions and dimensions require independent validation; no native implementation or listening acceptance implied.
+
+
+## 2026-10-29 — Shared musical default source
+
+STANDALONE ASSET: approved source identity, user-file precedence and source-vs-IR meaning are portable. HTTP loading/MP3 delivery are web choices, not native requirements. See [default source](DEFAULT_SOURCE.md).

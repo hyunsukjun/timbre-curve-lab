@@ -339,3 +339,8 @@ IMPLEMENTED / USER-APPROVED WEB UI. Existing fields/IDs/labels/units/value origi
 ## Toolbar and information visibility — 2026-10-28
 
 IMPLEMENTED / USER-APPROVED WEB UI. Move the fixed Timbre Filter name into Files information. Keep three current-value fields. Shortcuts follows Pen/Eraser in one wrapping unit; a two-column effect bar keeps Clear Current/Reset All under file actions without adding a third toolbar row. No new controls, shortcuts, processing or value model. The user approved commit/deployment after visual review on 2026-10-28; publication success is verified separately.
+
+
+## 2026-10-29 — Shared musical default source
+
+Use the approved shared Bach mallet MP3 in the role documented in [default source](DEFAULT_SOURCE.md). Stereo input and bypassed initial chain are retained. DSP and musical mappings are unchanged.

@@ -4,7 +4,7 @@ This document describes user intent rather than browser event names. Current web
 
 ## Initial State
 
-- An 8-second percussive white-noise sample is ready automatically.
+- The approved15-second Bach mallet MP3 is prepared automatically, without autoplay; see `DEFAULT_SOURCE.md`.
 - All seven effects are bypassed.
 - The signal chain contains only Input and Output.
 - Pen is selected.

@@ -1,3 +1,4 @@
+import {createSourceLoadGate} from "../src/default-source.js";
 import assert from 'node:assert/strict';
 import {readFileSync} from 'node:fs';
 import vm from 'node:vm';
@@ -17,7 +18,8 @@ const c={downloadUrl:'blob:previous',URL:{revokeObjectURL:url=>revoked.push(url)
  buildWaveform(){},sendBufferToWorklet(){},resetSourceWindowToMinimum(){},sendSettings(){},clearDownload(){},largeFileSeconds:180,resetCurrentReadouts(){},draw(){},console:{error(){}}};
 const start=source.indexOf('function clearDownload()');
 const clearCode=source.slice(start,source.indexOf('\n}',start)+2);
-vm.createContext(c);vm.runInContext(clearCode+'\n'+pick('ensureAudioContext')+'\n'+pick('loadAudioFile'),c);
+c.sourceLoadGate = createSourceLoadGate();
+ vm.createContext(c);vm.runInContext(clearCode+'\n'+pick('ensureAudioContext')+'\n'+pick('loadAudioFile'),c);
 const file={name:'test.wav',arrayBuffer:async()=>new ArrayBuffer(8)};
 let timer;
 try {await Promise.race([c.loadAudioFile(file),new Promise((_,reject)=>{timer=setTimeout(()=>reject(new Error('Import blocked by pending audio resume')),200)})]);} finally {clearTimeout(timer)}

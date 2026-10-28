@@ -1,3 +1,4 @@
+import {createSourceLoadGate, fetchDefaultSource} from "./default-source.js?v=20261029-bach1";
 import {beginVerticalGroup, moveVerticalGroup, restoreVerticalGroup, verticalGroupSuffix, drawVerticalGroupRing} from "./curve-group-edit.js?v=20261027-shift1";
 import {canvasAxisWidth, drawEditorGrid, frequencyTicks, frequencyLabel, spacedMarks, canvasLabelFont} from "./canvas-grid.js?v=20261026-graphite1";
 import { analyzeSourceColors, toneColor } from "./source-colors.js";
@@ -5,6 +6,8 @@ import { summarizeChannels } from "./source-envelope.js";
 import {mountTransport} from "./common-transport.js?v=20261013-1";
 import { readAudioFile } from "./audio-import.js?v=20261011-aiff1";
 import { OutputMeterAnalyzer } from "./output-meter.js?v=20260930-02";
+
+const sourceLoadGate = createSourceLoadGate();
 
 const fileInput = document.getElementById("fileInput");
 const fileStatus = document.getElementById("fileStatus");
@@ -1653,8 +1656,10 @@ async function setupAudio() {
     sendCurves();
 }
 
-async function loadAudioFile(file) {
+async function loadAudioFile(file, { request = null } = {}) {
   if (!file) return;
+  const sourceRequest = request || sourceLoadGate.begin();
+  if (!sourceRequest.current()) return;
   clearDownload();
   if (renderAbortController) {
     renderAbortController.abort();
@@ -1671,7 +1676,9 @@ async function loadAudioFile(file) {
     // Decoding must not wait for Safari playback permission after the file chooser.
     await ensureAudioContext({ resume: false });
     const data = await readAudioFile(file, audioContext.sampleRate);
-    buffer = await decodeAudioFile(data);
+    const candidate = await decodeAudioFile(data);
+    if (!sourceRequest.current()) return;
+    buffer = candidate;
     buildWaveform(buffer);
     workletBufferLoaded = false;
     sendBufferToWorklet();
@@ -1682,6 +1689,7 @@ async function loadAudioFile(file) {
     playheadSeconds = 0;
     draw();
   } catch (error) {
+    if (!sourceRequest.current()) return;
     console.error(error);
     fileStatus.textContent = error.message?.startsWith("AIFF:") ? error.message : "Could not load audio. Try WAV, MP3, or M4A.";
     setExportStatus("not ready");
@@ -1690,7 +1698,7 @@ async function loadAudioFile(file) {
     playheadSeconds = 0;
     draw();
   } finally {
-    setTransportBusy(false);
+    if (sourceRequest.current()) setTransportBusy(false);
   }
 }
 
@@ -2370,7 +2378,7 @@ window.addEventListener("keyup", (event) => {
 });
 
 resizeCanvas();
-loadDefaultWhiteNoise();
+loadDefaultSource();
 
 function pauseAudio() {
   if (!buffer) return;
@@ -2380,3 +2388,18 @@ function pauseAudio() {
 }
 
 mountTransport({state:()=>({duration:buffer?.duration||0,seconds:playheadSeconds,playing:isPlaying,disabled:playButton.disabled}),seek:p=>seekToOutputTime(p*(buffer?.duration||0))});
+
+async function loadDefaultSource() {
+  const request = sourceLoadGate.begin();
+  fileStatus.textContent = "Loading default sample…";
+  setTransportBusy(false);
+  try {
+    const file = await fetchDefaultSource(request.signal);
+    if (request.current()) await loadAudioFile(file, { request });
+  } catch (error) {
+    if (!request.current()) return;
+    fileStatus.textContent = "Default sample unavailable. Open an audio file to begin.";
+    setExportStatus("not ready");
+    setTransportBusy(false);
+  }
+}
