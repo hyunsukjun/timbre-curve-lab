@@ -4,7 +4,7 @@ import {canvasAxisWidth, drawEditorGrid, frequencyTicks, frequencyLabel, spacedM
 import { analyzeSourceColors, toneColor } from "./source-colors.js";
 import { summarizeChannels } from "./source-envelope.js";
 import {mountTransport} from "./common-transport.js?v=20261013-1";
-import { readAudioFile } from "./audio-import.js?v=20261011-aiff1";
+import { readAudioFile, validateAudioBuffer } from "./audio-import.js?v=20261029-input-validation1";
 import { OutputMeterAnalyzer } from "./output-meter.js?v=20260930-02";
 
 const sourceLoadGate = createSourceLoadGate();
@@ -133,6 +133,7 @@ let node;
 let outputMeter;
 let workletBufferLoaded = false;
 let buffer;
+let sourceFileLabel = "";
 let waveform = [];
 let sourceColors = null, sourceRaster = null;
 let outputWaveCssWidth = 1;
@@ -1660,7 +1661,7 @@ async function loadAudioFile(file, { request = null } = {}) {
   if (!file) return;
   const sourceRequest = request || sourceLoadGate.begin();
   if (!sourceRequest.current()) return;
-  clearDownload();
+  const previousDownloadStatus = downloadReadout.textContent || "ready";
   if (renderAbortController) {
     renderAbortController.abort();
     renderAbortController = null;
@@ -1677,6 +1678,7 @@ async function loadAudioFile(file, { request = null } = {}) {
     await ensureAudioContext({ resume: false });
     const data = await readAudioFile(file, audioContext.sampleRate);
     const candidate = await decodeAudioFile(data);
+    await validateAudioBuffer(candidate, { signal: sourceRequest.signal, isCurrent: sourceRequest.current });
     if (!sourceRequest.current()) return;
     buffer = candidate;
     buildWaveform(buffer);
@@ -1684,6 +1686,7 @@ async function loadAudioFile(file, { request = null } = {}) {
     sendBufferToWorklet();
     const longFileNote = buffer.duration > largeFileSeconds ? " - long file" : "";
     fileStatus.textContent = `${file.name} - ${buffer.duration.toFixed(2)} s${longFileNote}`;
+    sourceFileLabel = fileStatus.textContent;
     clearDownload();
     setExportStatus(buffer.duration > largeFileSeconds ? "export limit: 180 s" : "ready");
     playheadSeconds = 0;
@@ -1691,11 +1694,9 @@ async function loadAudioFile(file, { request = null } = {}) {
   } catch (error) {
     if (!sourceRequest.current()) return;
     console.error(error);
-    fileStatus.textContent = error.message?.startsWith("AIFF:") ? error.message : "Could not load audio. Try WAV, MP3, or M4A.";
-    setExportStatus("not ready");
-    buffer = null;
-    waveform = [];
-    playheadSeconds = 0;
+    const message = /^(AIFF:|Audio input:)/.test(error.message || "") ? error.message : "Could not load audio. Try WAV, MP3, or M4A.";
+    fileStatus.textContent = `${message}${buffer ? ` Previous audio remains available: ${sourceFileLabel}` : ""}`;
+    setExportStatus(buffer ? previousDownloadStatus : "not ready");
     draw();
   } finally {
     if (sourceRequest.current()) setTransportBusy(false);

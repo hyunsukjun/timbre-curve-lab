@@ -1,8 +1,9 @@
+import {PlaybackBoundary} from "../src/playback-boundary.js";
 import fs from 'node:fs';import vm from 'node:vm';import assert from 'node:assert/strict';
-const source=fs.readFileSync(new URL('../src/timbre-worklet.js',import.meta.url),'utf8');
+const source=fs.readFileSync(new URL('../src/timbre-worklet.js',import.meta.url),'utf8').replace(/^import .*$/gm,'');
 let count=0;
 for(const rate of [44100,48000,96000]){
- let Processor;vm.runInNewContext(source,{sampleRate:rate,Float32Array,Math,AudioWorkletProcessor:class{constructor(){this.port={postMessage(){}}}},registerProcessor:(n,p)=>Processor=p});
+ let Processor;vm.runInNewContext(source,{PlaybackBoundary,sampleRate:rate,Float32Array,Math,AudioWorkletProcessor:class{constructor(){this.port={postMessage(){}}}},registerProcessor:(n,p)=>Processor=p});
  for(const [effect,floor,maxDepth,delays] of [['Flanger',.25,10,[.5,3,10]],['Chorus',5,20,[10,22,35]]])for(const delay of delays)for(const depth of [0,effect==='Flanger'?2.5:4,maxDepth]){
   const p=new Processor();let read=0;p.readDelayBuffer=(state,d)=>{read=d;return .03;};
   const state={buffer:new Float32Array(Math.ceil(rate*.08)),index:0,phase:0,damp:0,delayMs:delay};let floorSamples=0;
